@@ -5,6 +5,12 @@ import { useAuth } from "@/context/AuthContext";
 import { withRoleProtection } from "@/components/withRoleProtection";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { CldUploadWidget } from "next-cloudinary";
+import dynamic from "next/dynamic";
+import "react-quill/dist/quill.snow.css";
+
+// React Quill required dynamically to avoid SSR issues
+const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
 
 const BLOG_CATEGORIES = [
     "Entrenamiento",
@@ -130,30 +136,75 @@ function AdminBlogCMS() {
                                 </select>
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider">URL de la Portada (Externa)</label>
-                                <input
-                                    type="url"
-                                    required
-                                    value={imageURL}
-                                    onChange={(e) => setImageURL(e.target.value)}
-                                    className="w-full bg-background-dark border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary transition-colors text-sm placeholder-gray-600"
-                                    placeholder="https://ejemplo.com/imagen.jpg"
-                                />
-                                <p className="text-xs text-gray-500 mt-1">Usa enlaces de Imgur, Unsplash, o tu propia nube para ahorrar costos.</p>
+                            <div className="flex flex-col gap-2">
+                                <label className="block text-sm font-bold text-gray-400 uppercase tracking-wider">Portada (Hero Image)</label>
+                                {imageURL ? (
+                                    <div className="relative w-full h-32 rounded-xl overflow-hidden group border border-white/10">
+                                        <div
+                                            className="absolute inset-0 bg-cover bg-center"
+                                            style={{ backgroundImage: `url(${imageURL})` }}
+                                        />
+                                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                            <button
+                                                type="button"
+                                                onClick={() => setImageURL("")}
+                                                className="bg-red-500 hover:bg-red-600 text-white p-2 rounded-full transition-colors flex items-center justify-center"
+                                            >
+                                                <span className="material-symbols-outlined">delete</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <CldUploadWidget
+                                        uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET_BLOG || "cdo-hero-blog"}
+                                        onSuccess={(result: any) => {
+                                            if (result?.info?.secure_url) {
+                                                setImageURL(result.info.secure_url);
+                                            }
+                                        }}
+                                        options={{
+                                            multiple: false,
+                                            maxFiles: 1,
+                                            sources: ['local', 'url'],
+                                            clientAllowedFormats: ['image'],
+                                            maxImageFileSize: 10000000, // 10MB limit
+                                            language: "es"
+                                        }}
+                                    >
+                                        {({ open }) => (
+                                            <button
+                                                type="button"
+                                                onClick={() => open()}
+                                                className="w-full h-32 bg-background-dark border-2 border-dashed border-white/20 hover:border-primary/50 text-gray-400 hover:text-white rounded-xl flex flex-col items-center justify-center transition-colors gap-2 cursor-pointer"
+                                            >
+                                                <span className="material-symbols-outlined text-3xl">add_photo_alternate</span>
+                                                <span className="text-sm font-medium">Subir Imagen de Portada</span>
+                                            </button>
+                                        )}
+                                    </CldUploadWidget>
+                                )}
                             </div>
                         </div>
 
                         <div>
                             <label className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider">Desarrollo del Contenido</label>
-                            <textarea
-                                required
-                                value={content}
-                                onChange={(e) => setContent(e.target.value)}
-                                rows={12}
-                                className="w-full bg-background-dark border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary transition-colors resize-y font-mono text-sm leading-relaxed"
-                                placeholder="Escribe el contenido de tu artículo aquí. Puedes usar párrafos normales..."
-                            />
+                            <div className="bg-white text-black rounded-xl overflow-hidden [&_.ql-editor]:min-h-[300px] [&_.ql-editor]:text-base [&_.ql-editor]:font-sans [&_.ql-editor_p]:mb-4">
+                                <ReactQuill
+                                    theme="snow"
+                                    value={content}
+                                    onChange={setContent}
+                                    modules={{
+                                        toolbar: [
+                                            [{ 'header': [2, 3, false] }],
+                                            ['bold', 'italic', 'underline', 'strike', 'blockquote'],
+                                            [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                                            ['link'],
+                                            ['clean']
+                                        ],
+                                    }}
+                                />
+                            </div>
+                            <p className="text-xs text-gray-500 mt-2 text-right">{content.length} caracteres</p>
                         </div>
 
                         <button
@@ -206,10 +257,11 @@ function AdminBlogCMS() {
                             </div>
 
                             {/* Content Preview */}
-                            <div className="p-4">
-                                <p className="text-gray-400 text-sm line-clamp-5 leading-relaxed">
-                                    {content || "El contenido de tu artículo comenzará a aparecer aquí para darte una idea del volumen y la estructura visual de los párrafos..."}
-                                </p>
+                            <div className="p-4 bg-white/5">
+                                <div
+                                    className="text-gray-300 text-sm leading-relaxed max-h-48 overflow-y-auto prose prose-sm prose-invert"
+                                    dangerouslySetInnerHTML={{ __html: content || "<p>El contenido de tu artículo comenzará a aparecer aquí de forma enriquecida...</p>" }}
+                                />
                             </div>
                         </div>
                     </div>

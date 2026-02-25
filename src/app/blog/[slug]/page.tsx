@@ -102,9 +102,10 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
             {/* CONTENT AREA */}
             <main className="max-w-3xl mx-auto px-6 py-12 lg:py-16">
-                <article className="prose prose-invert prose-p:text-gray-300 prose-headings:text-white prose-a:text-primary prose-img:rounded-xl md:prose-lg max-w-none break-words whitespace-pre-wrap">
-                    {post.content}
-                </article>
+                <article
+                    className="prose prose-invert prose-p:text-gray-300 prose-headings:text-white prose-a:text-primary prose-img:rounded-xl md:prose-lg max-w-none break-words whitespace-pre-wrap"
+                    dangerouslySetInnerHTML={{ __html: post.content }}
+                />
             </main>
 
             {/* RELATED POSTS BANNER */}
