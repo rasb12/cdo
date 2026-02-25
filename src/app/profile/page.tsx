@@ -5,6 +5,8 @@ import { useAuth } from "@/context/AuthContext";
 import { withRoleProtection } from "@/components/withRoleProtection";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
+import { updateProfile } from "firebase/auth";
+import { CldUploadWidget } from "next-cloudinary";
 
 interface HistoryItem {
     event: string;
@@ -67,6 +69,7 @@ function Profile() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState({ text: "", type: "" });
+    const [photoUrl, setPhotoUrl] = useState("");
 
     const availableSpecialties = [
         // Velocidad y Vallas
@@ -110,6 +113,7 @@ function Profile() {
                 if (docSnap.exists()) {
                     const data = docSnap.data();
                     setDisplayName(data.displayName || user.displayName || "");
+                    setPhotoUrl(data.photoURL || user.photoURL || "");
                     setBio(data.bio || "");
                     setPhone(data.phone || "");
                     setAddress(data.address || "");
@@ -151,6 +155,7 @@ function Profile() {
             const docRef = doc(db, "users", user.uid);
             const updatePayload: any = {
                 displayName,
+                photoURL: photoUrl,
                 bio,
                 phone,
                 address
@@ -210,6 +215,31 @@ function Profile() {
         setHistory(newHistory);
     };
 
+    const handleImageUpload = async (result: any) => {
+        if (result?.event === "success" && result.info?.secure_url) {
+            const newUrl = result.info.secure_url;
+            setPhotoUrl(newUrl);
+
+            // Update Firebase Auth profile immediately
+            if (auth.currentUser) {
+                try {
+                    await updateProfile(auth.currentUser, {
+                        photoURL: newUrl
+                    });
+
+                    // Also update Firestore to keep it synced
+                    const docRef = doc(db, "users", user!.uid);
+                    await updateDoc(docRef, { photoURL: newUrl } as any, { merge: true } as any);
+
+                    setMessage({ text: "Foto de perfil actualizada", type: "success" });
+                } catch (error) {
+                    console.error("Error updating photo in Firebase:", error);
+                    setMessage({ text: "Error al guardar la foto de perfil", type: "error" });
+                }
+            }
+        }
+    };
+
     if (loading) {
         return (
             <div className="p-10 flex justify-center items-center h-[50vh]">
@@ -224,10 +254,48 @@ function Profile() {
                 <div className="flex items-center gap-6">
                     <div className="relative group">
                         <img
-                            src={(user as any)?.photoURL || "https://ui-avatars.com/api/?name=" + (displayName || (user as any)?.email || "User") + "&background=0a0a0a&color=0AFF5F"}
+                            src={photoUrl || "https://ui-avatars.com/api/?name=" + (displayName || (user as any)?.email || "User") + "&background=0a0a0a&color=0AFF5F"}
                             alt="Profile"
                             className="w-24 h-24 rounded-full border-2 border-primary shadow-[0_0_15px_rgba(10,255,95,0.4)] object-cover"
                         />
+                        <CldUploadWidget
+                            uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "cdo-profile-pics"}
+                            onSuccess={handleImageUpload}
+                            options={{
+                                multiple: false,
+                                maxFiles: 1,
+                                cropping: true,
+                                croppingAspectRatio: 1,
+                                showSkipCropButton: false,
+                                sources: ['local', 'camera'],
+                                clientAllowedFormats: ['image'],
+                                maxImageFileSize: 5000000, // 5MB limit
+                                language: "es",
+                                text: {
+                                    es: {
+                                        or: "O",
+                                        menu: {
+                                            files: "Mis Archivos",
+                                            camera: "Cámara"
+                                        },
+                                        local: {
+                                            browse: "Buscar Imagen",
+                                            dd_title_single: "Arrastra y suelta tu foto aquí"
+                                        }
+                                    }
+                                }
+                            }}
+                        >
+                            {({ open }) => (
+                                <button
+                                    type="button"
+                                    onClick={() => open()}
+                                    className="absolute inset-0 bg-black/60 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-white/90"
+                                >
+                                    <span className="material-symbols-outlined text-3xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">add_a_photo</span>
+                                </button>
+                            )}
+                        </CldUploadWidget>
                     </div>
                     <div>
                         <h1 className="text-3xl font-black text-white tracking-wide uppercase">
