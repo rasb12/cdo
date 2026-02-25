@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #0aff5f;
+  --color-primary-hover: #00db4d;
+  --color-accent-blue: #00f0ff;
+  --color-background-light: #f6f8f6;
+  --color-background-dark: #0b121c;
+  --color-surface-dark: #131d2b;
+  --color-surface-dark-hover: #1f2a23;
+  --color-surface-darker: #080e16;
+  --color-text-main-dark: #e2e8f0;
+  --color-text-muted-dark: #94a3b8;
+
+  --font-display: "Lexend", sans-serif;
+
+  --shadow-glow: 0 0 15px rgba(10, 255, 95, 0.5);
+  --shadow-glow-blue: 0 0 15px rgba(0, 240, 255, 0.4);
+  --shadow-tech: 0 4px 20px -2px rgba(0, 0, 0, 0.5);
+}
+
+@layer base {
+  body {
+    @apply bg-background-dark text-slate-100 font-display min-h-screen selection:bg-primary selection:text-black antialiased;
+  }
+}
+
+@layer utilities {
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--color-background-dark);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #2a3b55;
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-primary);
+  }
+}
