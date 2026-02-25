@@ -3,9 +3,15 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { withRoleProtection } from "@/components/withRoleProtection";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc, deleteDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useParams, useRouter } from "next/navigation";
+import { CldUploadWidget } from "next-cloudinary";
+import dynamic from "next/dynamic";
+import "react-quill-new/dist/quill.snow.css";
+
+// React Quill required dynamically to avoid SSR issues
+const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 
 const BLOG_CATEGORIES = [
     "Entrenamiento",
@@ -31,6 +37,7 @@ function AdminEditBlogCMS() {
     // UI State
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
     const [message, setMessage] = useState({ text: "", type: "" });
 
     // Cargar los datos del post existente
@@ -60,6 +67,29 @@ function AdminEditBlogCMS() {
 
         fetchPost();
     }, [postId]);
+
+    const handleDelete = async () => {
+        if (!confirm("¿Estás seguro de que deseas eliminar este artículo? Esta acción no se puede deshacer.")) {
+            return;
+        }
+
+        setIsDeleting(true);
+        setMessage({ text: "", type: "" });
+
+        try {
+            const docRef = doc(db, "blog_posts", postId);
+            await deleteDoc(docRef);
+            setMessage({ text: "¡Post eliminado exitosamente!", type: "success" });
+
+            setTimeout(() => {
+                router.push('/blog');
+            }, 1500);
+        } catch (error: any) {
+            console.error("Error deleting post:", error);
+            setMessage({ text: `Error al eliminar: ${error.message}`, type: "error" });
+            setIsDeleting(false);
+        }
+    };
 
     const handleUpdate = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -120,14 +150,25 @@ function AdminEditBlogCMS() {
                     </h1>
                     <p className="text-gray-400 mt-1">Estás modificando un artículo previamente publicado.</p>
                 </div>
-                <button
-                    type="button"
-                    onClick={() => router.back()}
-                    className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm font-bold uppercase tracking-wider bg-surface-dark border border-white/10 px-4 py-2 rounded-lg hover:border-white/30"
-                >
-                    <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-                    Regresar
-                </button>
+                <div className="flex items-center gap-4">
+                    <button
+                        type="button"
+                        onClick={handleDelete}
+                        disabled={isDeleting || isSaving}
+                        className="flex items-center gap-2 text-red-500 hover:text-white transition-colors text-sm font-bold uppercase tracking-wider bg-red-500/10 hover:bg-red-500 border border-red-500/30 px-4 py-2 rounded-lg disabled:opacity-50"
+                    >
+                        <span className="material-symbols-outlined text-[18px]">delete</span>
+                        {isDeleting ? "Eliminando..." : "Eliminar"}
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => router.back()}
+                        className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm font-bold uppercase tracking-wider bg-surface-dark border border-white/10 px-4 py-2 rounded-lg hover:border-white/30"
+                    >
+                        <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+                        Regresar
+                    </button>
+                </div>
             </header>
 
             {message.text && (
@@ -169,27 +210,75 @@ function AdminEditBlogCMS() {
                                 </select>
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider">URL de la Portada</label>
-                                <input
-                                    type="url"
-                                    required
-                                    value={imageURL}
-                                    onChange={(e) => setImageURL(e.target.value)}
-                                    className="w-full bg-background-dark border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary transition-colors text-sm placeholder-gray-600"
-                                />
+                            <div className="flex flex-col gap-2">
+                                <label className="block text-sm font-bold text-gray-400 uppercase tracking-wider">Portada (Hero Image)</label>
+                                {imageURL ? (
+                                    <div className="relative w-full h-32 rounded-xl overflow-hidden group border border-white/10">
+                                        <div
+                                            className="absolute inset-0 bg-cover bg-center"
+                                            style={{ backgroundImage: `url(${imageURL})` }}
+                                        />
+                                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                            <button
+                                                type="button"
+                                                onClick={() => setImageURL("")}
+                                                className="bg-red-500 hover:bg-red-600 text-white p-2 rounded-full transition-colors flex items-center justify-center"
+                                            >
+                                                <span className="material-symbols-outlined">delete</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <CldUploadWidget
+                                        uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET_BLOG || "cdo-hero-blog"}
+                                        onSuccess={(result: any) => {
+                                            if (result?.info?.secure_url) {
+                                                setImageURL(result.info.secure_url);
+                                            }
+                                        }}
+                                        options={{
+                                            multiple: false,
+                                            maxFiles: 1,
+                                            sources: ['local', 'url'],
+                                            clientAllowedFormats: ['image'],
+                                            maxImageFileSize: 10000000, // 10MB limit
+                                            language: "es"
+                                        }}
+                                    >
+                                        {({ open }) => (
+                                            <button
+                                                type="button"
+                                                onClick={() => open()}
+                                                className="w-full h-32 bg-background-dark border-2 border-dashed border-white/20 hover:border-primary/50 text-gray-400 hover:text-white rounded-xl flex flex-col items-center justify-center transition-colors gap-2 cursor-pointer"
+                                            >
+                                                <span className="material-symbols-outlined text-3xl">add_photo_alternate</span>
+                                                <span className="text-sm font-medium">Subir Nueva Portada</span>
+                                            </button>
+                                        )}
+                                    </CldUploadWidget>
+                                )}
                             </div>
                         </div>
 
                         <div>
                             <label className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider">Desarrollo del Contenido</label>
-                            <textarea
-                                required
-                                value={content}
-                                onChange={(e) => setContent(e.target.value)}
-                                rows={12}
-                                className="w-full bg-background-dark border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary transition-colors resize-y font-mono text-sm leading-relaxed"
-                            />
+                            <div className="bg-white text-black rounded-xl overflow-hidden [&_.ql-editor]:min-h-[300px] [&_.ql-editor]:text-base [&_.ql-editor]:font-sans [&_.ql-editor_p]:mb-4">
+                                <ReactQuill
+                                    theme="snow"
+                                    value={content}
+                                    onChange={setContent}
+                                    modules={{
+                                        toolbar: [
+                                            [{ 'header': [2, 3, false] }],
+                                            ['bold', 'italic', 'underline', 'strike', 'blockquote'],
+                                            [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                                            ['link'],
+                                            ['clean']
+                                        ],
+                                    }}
+                                />
+                            </div>
+                            <p className="text-xs text-gray-500 mt-2 text-right">{content.length} caracteres</p>
                         </div>
 
                         <button
@@ -242,10 +331,11 @@ function AdminEditBlogCMS() {
                             </div>
 
                             {/* Content Preview */}
-                            <div className="p-4">
-                                <p className="text-gray-400 text-sm line-clamp-5 leading-relaxed break-words whitespace-pre-wrap">
-                                    {content || "Escribe el contenido de tu artículo aquí..."}
-                                </p>
+                            <div className="p-4 bg-white/5">
+                                <div
+                                    className="text-gray-300 text-sm leading-relaxed max-h-48 overflow-y-auto prose prose-sm prose-invert"
+                                    dangerouslySetInnerHTML={{ __html: content || "<p>Escribe el contenido de tu artículo aquí...</p>" }}
+                                />
                             </div>
                         </div>
                     </div>
