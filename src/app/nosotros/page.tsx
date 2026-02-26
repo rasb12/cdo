@@ -99,7 +99,7 @@ export default function Nosotros() {
                                     </span>
                                 </div>
                                 <p className="text-slate-400">
-                                    Ubicados en el Estadio Salvador de la Plaza del Complejo Polideportivo Simón Bolívar, masificamos el atletismo atendiendo a 80 atletas anualmente. De ellos, el 80% de los más jóvenes son selección regional, el 60% del total son selección estadal y el 20% son selección nacional.
+                                    Ubicados en el Estadio Salvador de la Plaza del Complejo Polideportivo Simón Bolívar, masificamos el atletismo atendiendo a más de80 atletas anualmente. De ellos, el 80% de los más jóvenes son selección regional, el 60% del total son selección estadal y el 20% son selección nacional.
                                 </p>
                             </div>
                         </div>
