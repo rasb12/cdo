@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Lexend } from "next/font/google";
 import { Sidebar } from "@/components/Sidebar";
 import { AuthProvider } from "@/context/AuthContext";
+import { IncompleteProfilePopup } from "@/components/IncompleteProfilePopup";
 import "./globals.css";
 
 const lexend = Lexend({
@@ -38,6 +39,7 @@ export default function RootLayout({
           <main className="flex-1 overflow-y-auto bg-background-dark scroll-smooth relative">
             {children}
           </main>
+          <IncompleteProfilePopup />
         </AuthProvider>
       </body>
     </html>

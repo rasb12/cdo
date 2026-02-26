@@ -4,7 +4,9 @@ import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
-export function withRoleProtection(WrappedComponent: React.ComponentType, allowedRoles: ("admin" | "athlete")[]) {
+import { Role, STAFF_ROLES } from "@/lib/permissions";
+
+export function withRoleProtection(WrappedComponent: React.ComponentType, allowedRoles: Role[]) {
     return function ProtectedRoute(props: any) {
         const { user, loading } = useAuth();
         const router = useRouter();
@@ -16,7 +18,7 @@ export function withRoleProtection(WrappedComponent: React.ComponentType, allowe
                     router.push("/login"); // Redirect to login
                 } else if (!allowedRoles.includes(user.role)) {
                     // Logged in but unauthorized for this route
-                    if (user.role === "admin") {
+                    if (STAFF_ROLES.includes(user.role)) {
                         router.push("/dashboard/admin");
                     } else {
                         router.push("/dashboard/athlete");

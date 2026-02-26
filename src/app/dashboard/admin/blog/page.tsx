@@ -8,6 +8,7 @@ import { db } from "@/lib/firebase";
 import { CldUploadWidget } from "next-cloudinary";
 import dynamic from "next/dynamic";
 import "react-quill-new/dist/quill.snow.css";
+import { STAFF_ROLES, hasPermission, Role } from "@/lib/permissions";
 
 // React Quill required dynamically to avoid SSR issues
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
@@ -83,6 +84,16 @@ function AdminBlogCMS() {
             setIsSaving(false);
         }
     };
+
+    if (user && !hasPermission(user.role as Role, 'manage_blogs')) {
+        return (
+            <div className="p-10 flex flex-col justify-center items-center h-[50vh] text-center">
+                <span className="material-symbols-outlined text-red-500 text-6xl mb-4">gpp_bad</span>
+                <h2 className="text-2xl font-bold text-white mb-2">Acceso Denegado</h2>
+                <p className="text-gray-400">Tu rol de <span className="text-primary capitalize">{user.role}</span> no tiene permisos para redactar blogs.</p>
+            </div>
+        );
+    }
 
     return (
         <div className="p-6 md:p-10 max-w-5xl mx-auto animate-fade-in-up">
@@ -271,4 +282,4 @@ function AdminBlogCMS() {
     );
 }
 
-export default withRoleProtection(AdminBlogCMS, ["admin"]);
+export default withRoleProtection(AdminBlogCMS, STAFF_ROLES);

@@ -128,7 +128,7 @@ function Profile() {
 
                         setSpecialties(data.specialties || []);
                         setHistory(data.history || []);
-                    } else if (user.role === "admin") {
+                    } else if (STAFF_ROLES.includes(user.role)) {
                         setProfession(data.profession || "");
                         setCertifications(data.certifications || "");
                         setSpecialties(data.specialties || []);
@@ -173,7 +173,7 @@ function Profile() {
                 // Save computed data so other views (like admin) can see it directly
                 updatePayload.age = computedAge;
                 updatePayload.fvaCategory = fvaCategory;
-            } else if (user.role === "admin") {
+            } else if (STAFF_ROLES.includes(user.role)) {
                 updatePayload.profession = profession;
                 updatePayload.certifications = certifications;
                 updatePayload.specialties = specialties;
@@ -303,9 +303,9 @@ function Profile() {
                         </h1>
                         <p className="text-gray-400 mt-1 flex items-center gap-2">
                             <span className="material-symbols-outlined text-[18px]">
-                                {user?.role === 'admin' ? 'shield_person' : 'directions_run'}
+                                {STAFF_ROLES.includes(user?.role as any) ? 'shield_person' : 'directions_run'}
                             </span>
-                            Rol actual: <strong className="text-white capitalize">{user?.role === 'admin' ? 'Entrenador' : 'Atleta'}</strong>
+                            Rol actual: <strong className="text-white capitalize">{STAFF_ROLES.includes(user?.role as any) ? 'Entrenador' : 'Atleta'}</strong>
                         </p>
                     </div>
                 </div>
@@ -485,7 +485,7 @@ function Profile() {
                             value={bio}
                             onChange={(e) => setBio(e.target.value)}
                             className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-primary/50 transition-colors h-24 resize-none"
-                            placeholder={user?.role === 'admin' ? "Describe tu filosofía de entrenamiento..." : "Cuéntanos sobre tus objetivos o por qué corres..."}
+                            placeholder={STAFF_ROLES.includes(user?.role as any) ? "Describe tu filosofía de entrenamiento..." : "Cuéntanos sobre tus objetivos o por qué corres..."}
                         ></textarea>
                     </div>
                 </section>
@@ -494,13 +494,13 @@ function Profile() {
                 <section className="bg-surface-dark border border-white/10 rounded-xl p-6 shadow-tech space-y-6">
                     <h2 className="text-xl font-bold text-white flex items-center gap-2 border-b border-white/5 pb-3">
                         <span className="material-symbols-outlined text-primary">
-                            {user?.role === 'admin' ? 'workspace_premium' : 'military_tech'}
+                            {STAFF_ROLES.includes(user?.role as any) ? 'workspace_premium' : 'military_tech'}
                         </span>
                         Datos Técnicos / Deportivos
                     </h2>
 
                     {/* Admin Only: Profession & Certifications */}
-                    {user?.role === 'admin' && (
+                    {STAFF_ROLES.includes(user?.role as any) && (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 border-b border-white/5 pb-6">
                             <div className="space-y-2">
                                 <label className="text-sm font-bold text-gray-400 uppercase tracking-wider block">Profesión Actual</label>
@@ -528,7 +528,7 @@ function Profile() {
                     {/* Shared: Specialties Tags */}
                     <div className="space-y-3">
                         <label className="text-sm font-bold text-gray-400 uppercase tracking-wider block">
-                            {user?.role === 'admin' ? 'Especialidades como Entrenador' : 'Pruebas / Especialidades del Atleta'}
+                            {STAFF_ROLES.includes(user?.role as any) ? 'Especialidades como Entrenador' : 'Pruebas / Especialidades del Atleta'}
                         </label>
                         <div className="flex flex-wrap gap-2 mt-2">
                             {availableSpecialties.map((spec) => {
@@ -621,4 +621,5 @@ function Profile() {
     );
 }
 
-export default withRoleProtection(Profile, ["athlete", "admin"]);
+import { STAFF_ROLES } from "@/lib/permissions";
+export default withRoleProtection(Profile, ["athlete", ...STAFF_ROLES]);

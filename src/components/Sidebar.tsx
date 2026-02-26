@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { auth } from "@/lib/firebase";
 import { signOut } from "firebase/auth";
+import { STAFF_ROLES, hasPermission } from "@/lib/permissions";
 
 export function Sidebar() {
     const pathname = usePathname();
@@ -32,6 +33,7 @@ export function Sidebar() {
     const navItems = [
         { name: "Inicio", path: "/", icon: "home" },
         { name: "Nosotros", path: "/nosotros", icon: "groups" },
+        { name: "Calendario", path: "/calendario", icon: "event" },
         { name: "Blog", path: "/blog", icon: "article" },
     ];
 
@@ -127,7 +129,7 @@ export function Sidebar() {
                         {/* Dashboard Link (Only visible when logged in) */}
                         {!loading && user && (
                             <Link
-                                href={user.role === "admin" ? "/dashboard/admin" : "/dashboard/athlete"}
+                                href={STAFF_ROLES.includes(user.role) ? "/dashboard/admin" : "/dashboard/athlete"}
                                 className={`flex items-center gap-3 px-4 py-3 sm:py-4 lg:py-3 rounded-lg border-l-2 transition-all duration-300 group mt-4 lg:mt-2
                   ${pathname.startsWith("/dashboard")
                                         ? "bg-primary/10 border-primary text-white"
@@ -143,13 +145,13 @@ export function Sidebar() {
                                     dashboard
                                 </span>
                                 <span className="text-sm sm:text-base lg:text-sm font-medium">
-                                    {user.role === "admin" ? "Panel Entrenador" : "Mi Entrenamiento"}
+                                    {STAFF_ROLES.includes(user.role) ? "Panel Entrenador" : "Mi Entrenamiento"}
                                 </span>
                             </Link>
                         )}
 
-                        {/* Blog CMS Link (Only visible for admins) */}
-                        {!loading && user?.role === "admin" && (
+                        {/* Blog CMS Link (Only visible for admins with manage_blogs permission) */}
+                        {!loading && user && hasPermission(user.role, 'manage_blogs') && (
                             <Link
                                 href="/dashboard/admin/blog"
                                 className={`flex items-center gap-3 px-4 py-3 sm:py-4 lg:py-3 rounded-lg border-l-2 transition-all duration-300 group

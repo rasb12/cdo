@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { withRoleProtection } from "@/components/withRoleProtection";
-import { collection, getDocs, addDoc, query, where, Timestamp } from "firebase/firestore";
+import { collection, getDocs, doc, getDoc, updateDoc, query, where, Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { STAFF_ROLES } from "@/lib/permissions";
 
 interface Athlete {
     uid: string;
@@ -34,10 +36,14 @@ export interface DailyRoutineAdvanced {
 const WARMUP_TAGS = ["Lubricación articular", "Trote calentamiento 10m", "Estiramiento dinámico", "Técnica de carrera", "Activación muscular"];
 const COOLDOWN_TAGS = ["Elongación suave", "Estiramiento estático", "Trote regenerativo", "Pies en alto", "Masaje/Rodillo"];
 
-function CreatePlan() {
+function EditPlan() {
     const { user } = useAuth();
+    const params = useParams();
+    const router = useRouter();
+    const planId = params.id as string;
+
     const [athletes, setAthletes] = useState<Athlete[]>([]);
-    const [loadingAthletes, setLoadingAthletes] = useState(true);
+    const [loadingData, setLoadingData] = useState(true);
 
     // Form State
     const [weekStartDate, setWeekStartDate] = useState("");
@@ -46,37 +52,48 @@ function CreatePlan() {
     const [message, setMessage] = useState({ text: "", type: "" });
     const [expandedDay, setExpandedDay] = useState<string | null>("Lunes");
 
-    const initialDays: DailyRoutineAdvanced[] = [
-        "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"
-    ].map(day => ({
-        dayOfWeek: day,
-        isRestDay: false,
-        warmupText: "",
-        mainBlocks: [],
-        cooldownText: ""
-    }));
+    const [days, setDays] = useState<DailyRoutineAdvanced[]>([]);
 
-    const [days, setDays] = useState<DailyRoutineAdvanced[]>(initialDays);
-
-    // Fetch Athletes
+    // Fetch Plan and Athletes
     useEffect(() => {
-        async function fetchAthletes() {
+        async function fetchData() {
+            setLoadingData(true);
             try {
+                // 1. Fetch Athletes for assignment list
                 const q = query(collection(db, "users"), where("role", "==", "athlete"));
                 const querySnapshot = await getDocs(q);
                 const athletesData: Athlete[] = [];
-                querySnapshot.forEach((doc) => {
-                    athletesData.push({ uid: doc.id, ...doc.data() } as Athlete);
+                querySnapshot.forEach((d) => {
+                    athletesData.push({ uid: d.id, ...d.data() } as Athlete);
                 });
                 setAthletes(athletesData);
+
+                // 2. Fetch specific Plan
+                const planRef = doc(db, "training_plans", planId);
+                const planSnap = await getDoc(planRef);
+
+                if (planSnap.exists()) {
+                    const data = planSnap.data();
+                    setWeekStartDate(data.weekStartDate || "");
+                    setSelectedAthleteIds(data.athleteIds || []);
+                    if (data.days && Array.isArray(data.days)) {
+                        setDays(data.days);
+                    }
+                } else {
+                    setMessage({ text: "El plan solicitado no existe.", type: "error" });
+                }
             } catch (error) {
-                console.error("Error fetching athletes:", error);
+                console.error("Error fetching data:", error);
+                setMessage({ text: "Error al cargar los datos del plan.", type: "error" });
             } finally {
-                setLoadingAthletes(false);
+                setLoadingData(false);
             }
         }
-        fetchAthletes();
-    }, []);
+
+        if (planId) {
+            fetchData();
+        }
+    }, [planId]);
 
     // DAY LEVEL HANDLERS
     const toggleRestDay = (dayIndex: number) => {
@@ -145,7 +162,7 @@ function CreatePlan() {
         }
     };
 
-    const handleSavePlan = async (e: React.FormEvent) => {
+    const handleUpdatePlan = async (e: React.FormEvent) => {
         e.preventDefault();
 
         if (!weekStartDate) {
@@ -164,33 +181,26 @@ function CreatePlan() {
         setMessage({ text: "", type: "" });
 
         try {
-            await addDoc(collection(db, "training_plans"), {
+            const planRef = doc(db, "training_plans", planId);
+            await updateDoc(planRef, {
                 athleteIds: selectedAthleteIds,
                 weekStartDate,
                 days,
-                assignedBy: user?.uid,
-                createdAt: Timestamp.now(),
+                lastUpdatedBy: user?.uid,
+                updatedAt: Timestamp.now(),
             });
 
-            setMessage({ text: "Plan avanzado asignado exitosamente.", type: "success" });
-
-            // Reset Form (must use a fresh generator to reset completely)
-            setWeekStartDate("");
-            setSelectedAthleteIds([]);
-            setDays([
-                "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"
-            ].map(day => ({
-                dayOfWeek: day,
-                isRestDay: false,
-                warmupText: "",
-                mainBlocks: [],
-                cooldownText: ""
-            })));
+            setMessage({ text: "Plan actualizado exitosamente.", type: "success" });
             window.scrollTo({ top: 0, behavior: "smooth" });
 
+            // Redirect back to manage after a small delay
+            setTimeout(() => {
+                router.push("/dashboard/admin/plans/manage");
+            }, 1500);
+
         } catch (error) {
-            console.error("Error saving plan:", error);
-            setMessage({ text: "Error al guardar el plan.", type: "error" });
+            console.error("Error updating plan:", error);
+            setMessage({ text: "Error al actualizar el plan.", type: "error" });
             window.scrollTo({ top: 0, behavior: "smooth" });
         } finally {
             setSaving(false);
@@ -198,20 +208,28 @@ function CreatePlan() {
         }
     };
 
+    if (loadingData) {
+        return (
+            <div className="p-10 flex justify-center items-center h-[50vh]">
+                <span className="material-symbols-outlined animate-spin text-primary text-4xl">refresh</span>
+            </div>
+        );
+    }
+
     return (
         <div className="p-6 md:p-10 max-w-7xl mx-auto space-y-8 animate-fade-in-up">
             <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-white/10 pb-6">
                 <div>
                     <Link href="/dashboard/admin/plans/manage" className="text-gray-400 hover:text-white flex items-center gap-2 mb-4 transition-colors text-sm font-bold w-fit">
                         <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-                        Ver Planes Asignados
+                        Volver a Gestión
                     </Link>
                     <h1 className="text-3xl font-black text-white tracking-wide uppercase flex items-center gap-3">
-                        <span className="material-symbols-outlined text-primary text-4xl">calendar_month</span>
-                        Constructor de Microciclo
+                        <span className="material-symbols-outlined text-primary text-4xl">edit</span>
+                        Editar Microciclo
                     </h1>
                     <p className="text-gray-400 mt-1">
-                        Define los calentamientos, técnica, bloques de repeción y vueltas a la calma.
+                        Modifica los bloques de entrenamiento o reasigna el plan a otros atletas.
                     </p>
                 </div>
 
@@ -225,8 +243,7 @@ function CreatePlan() {
                 )}
             </header>
 
-            <form onSubmit={handleSavePlan} className="grid grid-cols-1 lg:grid-cols-[1fr_350px] gap-8">
-
+            <form onSubmit={handleUpdatePlan} className="grid grid-cols-1 lg:grid-cols-[1fr_350px] gap-8">
                 {/* LEFT COLUMN: Routine Builder Accordion */}
                 <div className="space-y-6">
                     <section className="bg-surface-dark border border-white/10 rounded-xl p-6 shadow-tech">
@@ -303,7 +320,7 @@ function CreatePlan() {
                                                         ))}
                                                     </div>
                                                     <textarea
-                                                        value={day.warmupText}
+                                                        value={day.warmupText || ""}
                                                         onChange={(e) => handleTextChange(dIdx, "warmupText", e.target.value)}
                                                         placeholder="Calentamiento, técnica, etc..."
                                                         className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-primary/50 resize-y min-h-[60px]"
@@ -327,12 +344,12 @@ function CreatePlan() {
                                                         </button>
                                                     </div>
 
-                                                    {day.mainBlocks.length === 0 ? (
+                                                    {!day.mainBlocks || day.mainBlocks.length === 0 ? (
                                                         <p className="text-xs text-gray-500 italic py-2">No hay ejercicios principales añadidos.</p>
                                                     ) : (
                                                         <div className="space-y-3">
                                                             {day.mainBlocks.map((block, bIdx) => (
-                                                                <div key={block.id} className="relative bg-surface-dark border border-white/5 rounded-lg p-3 group">
+                                                                <div key={block.id || bIdx} className="relative bg-surface-dark border border-white/5 rounded-lg p-3 group">
                                                                     <button
                                                                         type="button"
                                                                         onClick={() => removeExercise(dIdx, block.id)}
@@ -346,7 +363,7 @@ function CreatePlan() {
                                                                         <div className="md:col-span-12">
                                                                             <input
                                                                                 type="text"
-                                                                                value={block.description}
+                                                                                value={block.description || ""}
                                                                                 onChange={(e) => updateExercise(dIdx, block.id, "description", e.target.value)}
                                                                                 placeholder="Ej: Carrera de 300m planos a ritmo 85%"
                                                                                 className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-primary/50 font-bold"
@@ -358,7 +375,7 @@ function CreatePlan() {
                                                                             <div className="flex-1">
                                                                                 <label className="block text-[10px] text-gray-500 uppercase font-bold mb-1">Series</label>
                                                                                 <input
-                                                                                    type="number" min="0" value={block.sets}
+                                                                                    type="number" min="0" value={block.sets || ""}
                                                                                     onChange={(e) => updateExercise(dIdx, block.id, "sets", parseInt(e.target.value) || "")}
                                                                                     className="w-full bg-black/60 border border-white/10 rounded px-2 py-1.5 text-white text-center text-sm focus:border-primary/50"
                                                                                 />
@@ -367,7 +384,7 @@ function CreatePlan() {
                                                                             <div className="flex-1">
                                                                                 <label className="block text-[10px] text-gray-500 uppercase font-bold mb-1">Reps</label>
                                                                                 <input
-                                                                                    type="number" min="0" value={block.reps}
+                                                                                    type="number" min="0" value={block.reps || ""}
                                                                                     onChange={(e) => updateExercise(dIdx, block.id, "reps", parseInt(e.target.value) || "")}
                                                                                     className="w-full bg-black/60 border border-white/10 rounded px-2 py-1.5 text-white text-center text-sm focus:border-primary/50"
                                                                                 />
@@ -382,7 +399,7 @@ function CreatePlan() {
                                                                                     Descanso / Rep
                                                                                 </label>
                                                                                 <input
-                                                                                    type="text" value={block.restReps} placeholder="Ej: 1 min"
+                                                                                    type="text" value={block.restReps || ""} placeholder="Ej: 1 min"
                                                                                     onChange={(e) => updateExercise(dIdx, block.id, "restReps", e.target.value)}
                                                                                     className="w-full bg-black/60 border border-white/10 rounded px-2 py-1.5 text-white text-sm focus:border-cyan-500/50"
                                                                                 />
@@ -393,7 +410,7 @@ function CreatePlan() {
                                                                                     Descanso / Serie
                                                                                 </label>
                                                                                 <input
-                                                                                    type="text" value={block.restSets} placeholder="Ej: 5 min"
+                                                                                    type="text" value={block.restSets || ""} placeholder="Ej: 5 min"
                                                                                     onChange={(e) => updateExercise(dIdx, block.id, "restSets", e.target.value)}
                                                                                     className="w-full bg-black/60 border border-white/10 rounded px-2 py-1.5 text-white text-sm focus:border-cyan-500/50"
                                                                                 />
@@ -425,7 +442,7 @@ function CreatePlan() {
                                                         ))}
                                                     </div>
                                                     <textarea
-                                                        value={day.cooldownText}
+                                                        value={day.cooldownText || ""}
                                                         onChange={(e) => handleTextChange(dIdx, "cooldownText", e.target.value)}
                                                         placeholder="Elongación, Abdominales 3x30, etc..."
                                                         className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-primary/50 resize-y min-h-[60px]"
@@ -454,57 +471,49 @@ function CreatePlan() {
                             </span>
                         </div>
 
-                        {loadingAthletes ? (
-                            <div className="flex-1 flex justify-center items-center py-10">
-                                <span className="material-symbols-outlined animate-spin text-primary text-3xl">refresh</span>
-                            </div>
-                        ) : (
-                            <>
-                                <button
-                                    type="button"
-                                    onClick={selectAllAthletes}
-                                    className="w-full text-xs font-bold uppercase tracking-wider text-gray-400 hover:text-white mb-4 py-2 border border-white/10 rounded-lg hover:bg-white/5 transition-colors"
-                                >
-                                    {selectedAthleteIds.length === athletes.length ? "Deseleccionar Todos" : "Seleccionar Escuela Ent."}
-                                </button>
+                        <button
+                            type="button"
+                            onClick={selectAllAthletes}
+                            className="w-full text-xs font-bold uppercase tracking-wider text-gray-400 hover:text-white mb-4 py-2 border border-white/10 rounded-lg hover:bg-white/5 transition-colors"
+                        >
+                            {selectedAthleteIds.length === athletes.length ? "Deseleccionar Todos" : "Seleccionar Escuela Ent."}
+                        </button>
 
-                                <div className="flex-1 overflow-y-auto pr-2 space-y-2 custom-scrollbar">
-                                    {athletes.length === 0 ? (
-                                        <p className="text-sm text-gray-500 text-center py-4">No hay atletas registrados aún.</p>
-                                    ) : (
-                                        athletes.map(athlete => {
-                                            const isSelected = selectedAthleteIds.includes(athlete.uid);
-                                            return (
-                                                <div
-                                                    key={athlete.uid}
-                                                    onClick={() => toggleAthleteSelection(athlete.uid)}
-                                                    className={`p-3 rounded-lg border cursor-pointer transition-all flex items-center gap-3 ${isSelected
-                                                        ? 'bg-primary/10 border-primary shadow-[0_0_10px_rgba(10,255,95,0.1)]'
-                                                        : 'bg-black/30 border-white/5 hover:border-white/20'
-                                                        }`}
-                                                >
-                                                    <div className={`size-5 rounded border flex items-center justify-center shrink-0 transition-colors ${isSelected ? 'bg-primary border-primary text-black' : 'border-gray-500'}`}>
-                                                        {isSelected && <span className="material-symbols-outlined text-[14px] font-bold">check</span>}
-                                                    </div>
-                                                    <div className="flex-1 min-w-0">
-                                                        <p className={`text-sm font-bold truncate transition-colors ${isSelected ? 'text-white' : 'text-gray-300'}`}>
-                                                            {athlete.displayName || "Atleta Sin Nombre"}
-                                                        </p>
-                                                        {athlete.specialties && athlete.specialties.length > 0 ? (
-                                                            <p className="text-[10px] text-gray-500 truncate uppercase mt-0.5">
-                                                                {athlete.specialties[0]} {athlete.specialties.length > 1 ? `+${athlete.specialties.length - 1}` : ''}
-                                                            </p>
-                                                        ) : (
-                                                            <p className="text-[10px] text-gray-600 truncate uppercase mt-0.5">Sin Especialidad</p>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            )
-                                        })
-                                    )}
-                                </div>
-                            </>
-                        )}
+                        <div className="flex-1 overflow-y-auto pr-2 space-y-2 custom-scrollbar">
+                            {athletes.length === 0 ? (
+                                <p className="text-sm text-gray-500 text-center py-4">No hay atletas registrados aún.</p>
+                            ) : (
+                                athletes.map(athlete => {
+                                    const isSelected = selectedAthleteIds.includes(athlete.uid);
+                                    return (
+                                        <div
+                                            key={athlete.uid}
+                                            onClick={() => toggleAthleteSelection(athlete.uid)}
+                                            className={`p-3 rounded-lg border cursor-pointer transition-all flex items-center gap-3 ${isSelected
+                                                ? 'bg-primary/10 border-primary shadow-[0_0_10px_rgba(10,255,95,0.1)]'
+                                                : 'bg-black/30 border-white/5 hover:border-white/20'
+                                                }`}
+                                        >
+                                            <div className={`size-5 rounded border flex items-center justify-center shrink-0 transition-colors ${isSelected ? 'bg-primary border-primary text-black' : 'border-gray-500'}`}>
+                                                {isSelected && <span className="material-symbols-outlined text-[14px] font-bold">check</span>}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className={`text-sm font-bold truncate transition-colors ${isSelected ? 'text-white' : 'text-gray-300'}`}>
+                                                    {athlete.displayName || "Atleta Sin Nombre"}
+                                                </p>
+                                                {athlete.specialties && athlete.specialties.length > 0 ? (
+                                                    <p className="text-[10px] text-gray-500 truncate uppercase mt-0.5">
+                                                        {athlete.specialties[0]} {athlete.specialties.length > 1 ? `+${athlete.specialties.length - 1}` : ''}
+                                                    </p>
+                                                ) : (
+                                                    <p className="text-[10px] text-gray-600 truncate uppercase mt-0.5">Sin Especialidad</p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )
+                                })
+                            )}
+                        </div>
 
                         <div className="pt-6 border-t border-white/5 mt-auto">
                             <button
@@ -515,12 +524,12 @@ function CreatePlan() {
                                 {saving ? (
                                     <>
                                         <span className="material-symbols-outlined animate-spin">refresh</span>
-                                        Guardando...
+                                        Actualizando...
                                     </>
                                 ) : (
                                     <>
-                                        <span className="material-symbols-outlined">send</span>
-                                        Emisión Global
+                                        <span className="material-symbols-outlined">save</span>
+                                        Guardar Cambios
                                     </>
                                 )}
                             </button>
@@ -532,5 +541,6 @@ function CreatePlan() {
     );
 }
 
-// Only admins/coaches can access this route
-export default withRoleProtection(CreatePlan, ["admin"]);
+// Only staff can access this route (the page UI is only functional if assign_plans is true, 
+// handled similarly through withRoleProtection)
+export default withRoleProtection(EditPlan, STAFF_ROLES);

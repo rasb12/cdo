@@ -7,6 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
+import { STAFF_ROLES, hasPermission } from "@/lib/permissions";
 
 function AdminDashboard() {
     const { user } = useAuth();
@@ -60,10 +61,24 @@ function AdminDashboard() {
                     </p>
                 </div>
                 <div className="flex gap-3">
-                    <Link href="/dashboard/admin/plans" className="flex items-center gap-2 bg-primary hover:bg-primary-hover text-black px-4 py-2 rounded-lg font-bold transition-colors shadow-glow">
-                        <span className="material-symbols-outlined text-[20px]">add</span>
-                        Nuevo Plan
-                    </Link>
+                    {hasPermission(user?.role as any, 'assign_plans') && (
+                        <Link href="/dashboard/admin/plans/manage" className="flex items-center gap-2 bg-white/5 hover:bg-white/10 text-white border border-white/10 hover:border-white/30 px-4 py-2 rounded-lg font-bold transition-colors">
+                            <span className="material-symbols-outlined text-[20px]">folder_managed</span>
+                            <span className="hidden sm:inline">Gestionar Planes</span>
+                            <span className="sm:hidden">Gestionar</span>
+                        </Link>
+                    )}
+                    {hasPermission(user?.role as any, 'assign_plans') ? (
+                        <Link href="/dashboard/admin/plans" className="flex items-center gap-2 bg-primary hover:bg-primary-hover text-black px-4 py-2 rounded-lg font-bold transition-colors shadow-glow">
+                            <span className="material-symbols-outlined text-[20px]">add</span>
+                            Nuevo Plan
+                        </Link>
+                    ) : (
+                        <button disabled className="flex items-center gap-2 bg-white/5 border border-white/10 text-gray-500 px-4 py-2 rounded-lg font-bold cursor-not-allowed">
+                            <span className="material-symbols-outlined text-[20px]">lock</span>
+                            Sin Permiso (Planes)
+                        </button>
+                    )}
                 </div>
             </header>
 
@@ -171,5 +186,5 @@ function AdminDashboard() {
     );
 }
 
-// Wrap the component to only allow 'admin' roles
-export default withRoleProtection(AdminDashboard, ["admin"]);
+// Wrap the component to only allow staff roles
+export default withRoleProtection(AdminDashboard, STAFF_ROLES);
