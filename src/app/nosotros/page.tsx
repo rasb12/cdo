@@ -295,10 +295,10 @@ export default function Nosotros() {
                             Únete a la familia de Corredores de Oriente hoy mismo. Escríbenos
                             directamente y agenda tu clase de prueba.
                         </p>
-                        <button className="bg-primary hover:bg-[#20bd5a] text-black font-bold py-4 px-8 rounded-full text-lg shadow-lg shadow-primary/30 transform transition hover:-translate-y-1 flex items-center gap-2">
-                            <span>Chatear Ahora</span>
-                            <span className="material-symbols-outlined">send</span>
-                        </button>
+                        <Link href="/register" className="bg-primary hover:bg-[#20bd5a] text-black font-bold py-4 px-8 rounded-full text-lg shadow-lg shadow-primary/30 transform transition hover:-translate-y-1 flex items-center gap-2">
+                            <span>Regístrate Ahora</span>
+                            <span className="material-symbols-outlined">how_to_reg</span>
+                        </Link>
                     </div>
                 </section>
             </div>

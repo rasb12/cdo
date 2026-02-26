@@ -1,4 +1,5 @@
 
+import Link from "next/link";
 
 export default function Home() {
   return (
@@ -50,12 +51,12 @@ export default function Home() {
               para atletas de alto rendimiento con metodología olímpica.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-2 sm:mt-4 w-full">
-              <button className="w-full sm:w-auto flex items-center justify-center rounded-lg h-12 px-8 bg-primary hover:bg-primary-hover text-black text-base font-bold tracking-wide transition-all shadow-glow hover:shadow-[0_0_20px_rgba(10,255,95,0.6)]">
+              <Link href="/register" className="w-full sm:w-auto flex items-center justify-center rounded-lg h-12 px-8 bg-primary hover:bg-primary-hover text-black text-base font-bold tracking-wide transition-all shadow-glow hover:shadow-[0_0_20px_rgba(10,255,95,0.6)]">
                 Empieza Ahora
-              </button>
-              <button className="w-full sm:w-auto flex items-center justify-center rounded-lg h-12 px-8 bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-white/20 text-white text-base font-bold tracking-wide transition-all hover:border-white/40">
-                Ver Programas
-              </button>
+              </Link>
+              <Link href="/nosotros/equipo" className="w-full sm:w-auto flex items-center justify-center rounded-lg h-12 px-8 bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-white/20 text-white text-base font-bold tracking-wide transition-all hover:border-white/40">
+                Ver Nuestro Equipo
+              </Link>
             </div>
           </div>
         </section>
@@ -311,9 +312,9 @@ export default function Home() {
               Únete a una comunidad de más de 500 atletas apasionados y lleva tu
               rendimiento al siguiente nivel. Primera clase de prueba gratis.
             </p>
-            <button className="mt-4 flex min-w-[200px] cursor-pointer items-center justify-center rounded-lg h-14 px-8 bg-primary hover:bg-primary-hover text-black text-lg font-bold shadow-glow hover:shadow-[0_0_30px_rgba(10,255,95,0.8)] active:translate-y-[2px] active:shadow-none transition-all">
+            <Link href="/register" className="mt-4 flex min-w-[200px] cursor-pointer items-center justify-center rounded-lg h-14 px-8 bg-primary hover:bg-primary-hover text-black text-lg font-bold shadow-glow hover:shadow-[0_0_30px_rgba(10,255,95,0.8)] active:translate-y-[2px] active:shadow-none transition-all">
               Inscribirse Hoy
-            </button>
+            </Link>
           </div>
         </section>
       </div>
