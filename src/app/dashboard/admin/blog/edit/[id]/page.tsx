@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { withRoleProtection } from "@/components/withRoleProtection";
+import { STAFF_ROLES } from "@/lib/permissions";
 import { doc, getDoc, updateDoc, deleteDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useParams, useRouter } from "next/navigation";
@@ -345,4 +346,4 @@ function AdminEditBlogCMS() {
     );
 }
 
-export default withRoleProtection(AdminEditBlogCMS, ["admin"]);
+export default withRoleProtection(AdminEditBlogCMS, STAFF_ROLES);

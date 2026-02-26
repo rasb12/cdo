@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { withRoleProtection } from "@/components/withRoleProtection";
+import { STAFF_ROLES } from "@/lib/permissions";
 import Link from "next/link";
 
 interface HistoryItem {
@@ -212,4 +213,4 @@ function AthleteDetailView() {
     );
 }
 
-export default withRoleProtection(AthleteDetailView, ["admin"]);
+export default withRoleProtection(AthleteDetailView, STAFF_ROLES);

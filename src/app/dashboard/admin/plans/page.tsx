@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { withRoleProtection } from "@/components/withRoleProtection";
+import { STAFF_ROLES } from "@/lib/permissions";
 import { collection, getDocs, addDoc, query, where, Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
@@ -533,4 +534,4 @@ function CreatePlan() {
 }
 
 // Only admins/coaches can access this route
-export default withRoleProtection(CreatePlan, ["admin"]);
+export default withRoleProtection(CreatePlan, STAFF_ROLES);
