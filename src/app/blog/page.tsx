@@ -112,7 +112,7 @@ export default function Blog() {
                                             {post.title}
                                         </h3>
                                         <p className="text-gray-400 text-sm mb-6 line-clamp-3 leading-relaxed flex-1">
-                                            {post.content}
+                                            {post.content.replace(/<[^>]*>?/gm, '').replace(/&nbsp;/g, ' ')}
                                         </p>
                                         <div className="mt-auto flex items-center justify-between pt-4 border-t border-white/10">
                                             <div className="flex items-center gap-2">
