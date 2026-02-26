@@ -1,5 +1,59 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { collection, query, where, getDocs, limit } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { STAFF_ROLES, ROLE_TRANSLATIONS, Role } from "@/lib/permissions";
+
+interface StaffMember {
+    uid: string;
+    displayName: string;
+    photoURL?: string;
+    role: Role;
+    bio?: string;
+    specialties?: string[];
+}
 
 export default function Nosotros() {
+    const [staff, setStaff] = useState<StaffMember[]>([]);
+    const [loadingStaff, setLoadingStaff] = useState(true);
+
+    useEffect(() => {
+        async function fetchTopStaff() {
+            try {
+                // Fetch staff members
+                const q = query(
+                    collection(db, "users"),
+                    where("role", "in", STAFF_ROLES)
+                );
+
+                const querySnapshot = await getDocs(q);
+                let staffData: StaffMember[] = [];
+
+                querySnapshot.forEach((doc) => {
+                    staffData.push({ uid: doc.id, ...doc.data() } as StaffMember);
+                });
+
+                // Prioritize Head Coach and Developers, and slice top 3
+                staffData.sort((a, b) => {
+                    if (a.role === 'head_coach') return -1;
+                    if (b.role === 'head_coach') return 1;
+                    if (a.role === 'developer') return -1;
+                    if (b.role === 'developer') return 1;
+                    return 0;
+                });
+
+                setStaff(staffData.slice(0, 3));
+            } catch (error) {
+                console.error("Error fetching staff:", error);
+            } finally {
+                setLoadingStaff(false);
+            }
+        }
+
+        fetchTopStaff();
+    }, []);
     return (
         <div className="flex-1 min-h-screen flex flex-col bg-background-dark">
             {/* Hero Section */}
@@ -152,7 +206,7 @@ export default function Nosotros() {
                 </section>
 
                 {/* Equipo */}
-                <section className="mb-20">
+                <section className="mb-20 animate-fade-in-up">
                     <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
                         <div>
                             <h2 className="text-white text-3xl font-bold border-l-4 border-primary pl-4 mb-2">
@@ -162,105 +216,63 @@ export default function Nosotros() {
                                 Profesionales dedicados a tu máximo rendimiento.
                             </p>
                         </div>
-                        <button className="text-primary font-bold hover:text-white transition-colors flex items-center gap-1 group">
+                        <Link href="/nosotros/equipo" className="text-primary font-bold hover:text-white transition-colors flex items-center gap-1 group w-max">
                             Ver todo el staff{" "}
                             <span className="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">
                                 arrow_forward
                             </span>
-                        </button>
+                        </Link>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <div className="group bg-surface-dark rounded-xl overflow-hidden shadow-lg border border-slate-800 hover:border-slate-600 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300">
-                            <div className="aspect-[4/3] bg-slate-800 overflow-hidden relative">
-                                <img
-                                    alt="Entrenador Carlos Rodríguez"
-                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90 group-hover:opacity-100"
-                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuClz372bpB6hPapDcucJdKjKNIfps1qI1FESab4ZaLn9glip-KUbH-fBcvVSP6MLdQFEsx1GN8rK1lr3akqZau1GzTrry7v8nVDYgoZiYu1zqtQFs8jYo9tZECFUcgQaO6hIdLnBRnSrdD9kEb1XDg5NRJd02ReU416sObTYeo4iJGtiIILTw8AsgWBNHViV8AxCMjUeVEeR0Rfhy6TUC2zcXB5XEU7DWNJdTVBrFilxENbrrmtyZep15nik2wz2avE-GKQlTBk4JI"
-                                />
-                                <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-background-dark via-background-dark/80 to-transparent p-4">
-                                    <p className="text-primary text-xs font-bold tracking-wider uppercase">
-                                        Entrenador Principal
-                                    </p>
-                                </div>
-                            </div>
-                            <div className="p-6">
-                                <h3 className="text-xl font-bold text-white mb-1">
-                                    Carlos Rodríguez
-                                </h3>
-                                <p className="text-sm text-slate-400 mb-4">
-                                    Especialista en velocidad y vallas
-                                </p>
-                                <div className="flex flex-wrap gap-2">
-                                    <span className="px-2 py-1 bg-slate-800 text-slate-300 text-xs rounded-md border border-slate-700">
-                                        Nivel 2 World Athletics
-                                    </span>
-                                    <span className="px-2 py-1 bg-slate-800 text-slate-300 text-xs rounded-md border border-slate-700">
-                                        Lic. Ed. Física
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
 
-                        <div className="group bg-surface-dark rounded-xl overflow-hidden shadow-lg border border-slate-800 hover:border-slate-600 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300">
-                            <div className="aspect-[4/3] bg-slate-800 overflow-hidden relative">
-                                <img
-                                    alt="Entrenadora Ana Pérez"
-                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90 group-hover:opacity-100"
-                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuCztf_KrEpnAtlKflwINhFwxkhyCq15KCER1zruwRwTCBOraoSGR2kLwg5KWVeqEllg7QfPiOzGKGZmty8iSls8pgmZTD0js90APINmnc92xKMMqQxWRRhT2GLAMD8A_iymvt_-ebjs8b8beytzkfvlnKHIgt3t9VxKGtxa0lsOXIDAU1mz0k1cN7ZD_OHVNY7hMK9RoNaPmZzT2DAgw6ehGts0vO7hKxNowYwaxhr7yICRaB3mvUrdZ8QiQX1Kmu5AVE2Gl3kaR7g"
-                                />
-                                <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-background-dark via-background-dark/80 to-transparent p-4">
-                                    <p className="text-primary text-xs font-bold tracking-wider uppercase">
-                                        Nutricionista
-                                    </p>
-                                </div>
-                            </div>
-                            <div className="p-6">
-                                <h3 className="text-xl font-bold text-white mb-1">Ana Pérez</h3>
-                                <p className="text-sm text-slate-400 mb-4">
-                                    Nutrición deportiva y bienestar
-                                </p>
-                                <div className="flex flex-wrap gap-2">
-                                    <span className="px-2 py-1 bg-slate-800 text-slate-300 text-xs rounded-md border border-slate-700">
-                                        MSc. Nutrición
-                                    </span>
-                                    <span className="px-2 py-1 bg-slate-800 text-slate-300 text-xs rounded-md border border-slate-700">
-                                        ISAK 2
-                                    </span>
-                                </div>
-                            </div>
+                    {loadingStaff ? (
+                        <div className="flex justify-center items-center py-10">
+                            <span className="material-symbols-outlined animate-spin text-primary text-3xl">refresh</span>
                         </div>
-
-                        <div className="group bg-surface-dark rounded-xl overflow-hidden shadow-lg border border-slate-800 hover:border-slate-600 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300">
-                            <div className="aspect-[4/3] bg-slate-800 overflow-hidden relative">
-                                <img
-                                    alt="Entrenador Luis Mendez"
-                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90 group-hover:opacity-100"
-                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuBOR0xXftWRk2d4VoVgWBN2wMJR8XLnYCrF0jSgkCKxOzeQlkZSatCVZtV2-qu73pz28MaDVtptEMq8UzkinY3X8qHko4-1yueZtcbFhtBR7EWgtMrsBjvT0pYkrRHFORDsWs1YOKf6-Vl3VQ5qQzBf08_nUQWtDwP3hTsjfkOj14irlh1ASC4Y_vSVA2e8dmVK8PdYUQw8GjVRuMOofIrhBq8KzwOuXqh3QeLF5FVgTuLTqzJoJiLndKN1Dv8jZqUUsJsEKCZNRVQ"
-                                />
-                                <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-background-dark via-background-dark/80 to-transparent p-4">
-                                    <p className="text-primary text-xs font-bold tracking-wider uppercase">
-                                        Prep. Físico
-                                    </p>
-                                </div>
-                            </div>
-                            <div className="p-6">
-                                <h3 className="text-xl font-bold text-white mb-1">
-                                    Luis Méndez
-                                </h3>
-                                <p className="text-sm text-slate-400 mb-4">
-                                    Fuerza y acondicionamiento
-                                </p>
-                                <div className="flex flex-wrap gap-2">
-                                    <span className="px-2 py-1 bg-slate-800 text-slate-300 text-xs rounded-md border border-slate-700">
-                                        Nivel 3 CrossFit
-                                    </span>
-                                    <span className="px-2 py-1 bg-slate-800 text-slate-300 text-xs rounded-md border border-slate-700">
-                                        Fisioterapia
-                                    </span>
-                                </div>
-                            </div>
+                    ) : staff.length === 0 ? (
+                        <div className="text-center py-10 bg-surface-dark rounded-xl border border-white/5">
+                            <p className="text-gray-400">El equipo técnico se está conformando.</p>
                         </div>
-                    </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {staff.map((member) => (
+                                <div key={member.uid} className="group bg-surface-dark rounded-xl overflow-hidden shadow-lg border border-slate-800 hover:border-slate-600 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 flex flex-col">
+                                    <div className="aspect-[4/3] bg-slate-800 overflow-hidden relative">
+                                        <img
+                                            alt={member.displayName}
+                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90 group-hover:opacity-100"
+                                            src={member.photoURL || `https://ui-avatars.com/api/?name=${member.displayName || "Staff"}&background=0a0a0a&color=0AFF5F`}
+                                        />
+                                        <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-background-dark via-background-dark/80 to-transparent p-4">
+                                            <p className="text-primary text-[10px] font-black tracking-widest uppercase">
+                                                {ROLE_TRANSLATIONS[member.role] || member.role}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="p-6 flex flex-col flex-1">
+                                        <h3 className="text-xl font-bold text-white mb-1 line-clamp-1">
+                                            {member.displayName || "Usuario Sin Nombre"}
+                                        </h3>
+                                        <p className="text-sm text-slate-400 mb-4 line-clamp-1 italic">
+                                            {member.bio && member.bio.length > 0 ? `"${member.bio}"` : ""}
+                                        </p>
+                                        <div className="flex flex-wrap gap-2 mt-auto">
+                                            {member.specialties && member.specialties.length > 0 ? (
+                                                member.specialties.map(spec => (
+                                                    <span key={spec} className="px-2 py-1 bg-slate-800 text-slate-300 text-xs rounded-md border border-slate-700 font-bold uppercase text-[10px]">
+                                                        {spec}
+                                                    </span>
+                                                ))
+                                            ) : (
+                                                <span className="px-2 py-1 bg-slate-800 text-slate-500 text-xs rounded-md border border-slate-700 font-bold uppercase text-[10px] italic">
+                                                    Staff Activo
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </section>
 
                 {/* CTA */}

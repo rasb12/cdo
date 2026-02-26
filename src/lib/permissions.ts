@@ -72,3 +72,14 @@ export function hasPermission(role: Role | undefined | null, permission: Permiss
 
     return permissions.includes(permission);
 }
+
+// Map internal role keys to Spanish display names for frontend presentation
+export const ROLE_TRANSLATIONS: Record<Role, string> = {
+    developer: "Desarrollador IT",
+    head_coach: "Entrenador Principal",
+    physio: "Fisioterapeuta / Prep. Físico",
+    assistant_coach: "Entrenador Auxiliar",
+    nutritionist: "Nutricionista",
+    admin: "Administrador",
+    athlete: "Atleta"
+};
