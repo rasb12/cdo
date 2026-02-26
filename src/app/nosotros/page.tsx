@@ -20,7 +20,7 @@ export default function Nosotros() {
                         Pasión por el Atletismo
                     </h1>
                     <p className="text-slate-300 text-lg font-light max-w-xl">
-                        Formando campeones dentro y fuera de la pista desde 2010.
+                        Formando campeones dentro y fuera de la pista desde 1998.
                     </p>
                 </div>
             </div>
@@ -45,14 +45,13 @@ export default function Nosotros() {
                         <div className="pb-12 pt-1">
                             <div className="bg-surface-dark p-6 rounded-xl border border-slate-700/50 shadow-lg shadow-black/20 hover:border-primary/30 transition-all">
                                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-2">
-                                    <h3 className="text-lg font-bold text-white">Fundación</h3>
-                                    <span className="text-primary font-bold bg-primary/10 border border-primary/20 px-3 py-1 rounded-full text-sm w-fit">
-                                        2010
+                                    <h3 className="text-lg font-bold text-white">Los Orígenes de una Pasión</h3>
+                                    <span className="text-primary font-bold bg-primary/10 border border-primary/20 px-3 py-1 rounded-full text-sm w-fit uppercase">
+                                        1998
                                     </span>
                                 </div>
                                 <p className="text-slate-400">
-                                    Nacimos con el sueño de crear un espacio profesional para el
-                                    desarrollo atlético en la región oriental.
+                                    La iniciativa nace de la mano del entrenador Ramón Salazar, quien tras 42 años de trayectoria deportiva y de consolidar una escuela en su nombre con una pista construida por él mismo en Las Barrancas (Nueva Esparta), decide expandir su legado.
                                 </p>
                             </div>
                         </div>
@@ -61,7 +60,7 @@ export default function Nosotros() {
                         <div className="relative z-10 flex flex-col items-center">
                             <div className="size-10 rounded-full bg-surface-dark border-2 border-primary flex items-center justify-center shadow-[0_0_10px_rgba(19,236,91,0.2)]">
                                 <span className="material-symbols-outlined text-primary text-xl">
-                                    emoji_events
+                                    school
                                 </span>
                             </div>
                         </div>
@@ -69,15 +68,14 @@ export default function Nosotros() {
                             <div className="bg-surface-dark p-6 rounded-xl border border-slate-700/50 shadow-lg shadow-black/20 hover:border-primary/30 transition-all">
                                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-2">
                                     <h3 className="text-lg font-bold text-white">
-                                        Primer Campeonato Nacional
+                                        Fundación y Reestructuración
                                     </h3>
-                                    <span className="text-primary font-bold bg-primary/10 border border-primary/20 px-3 py-1 rounded-full text-sm w-fit">
-                                        2015
+                                    <span className="text-primary font-bold bg-primary/10 border border-primary/20 px-3 py-1 rounded-full text-sm w-fit uppercase">
+                                        Evolución
                                     </span>
                                 </div>
                                 <p className="text-slate-400">
-                                    Nuestros atletas lograron medalla de oro en relevos 4x100,
-                                    marcando un hito en nuestra historia competitiva.
+                                    Al trasladar su domicilio al estado Anzoátegui, el Entrenador Salazar funda la escuela inicialmente denominada "Los Olímpicos", la cual a través de un proceso de reingeniería adopta su emblemático nombre: Escuela de Atletismo Corredores de Oriente.
                                 </p>
                             </div>
                         </div>
@@ -86,7 +84,7 @@ export default function Nosotros() {
                         <div className="relative z-10 flex flex-col items-center">
                             <div className="size-10 rounded-full bg-surface-dark border-2 border-primary flex items-center justify-center shadow-[0_0_10px_rgba(19,236,91,0.2)]">
                                 <span className="material-symbols-outlined text-primary text-xl">
-                                    stadium
+                                    emoji_events
                                 </span>
                             </div>
                         </div>
@@ -94,15 +92,14 @@ export default function Nosotros() {
                             <div className="bg-surface-dark p-6 rounded-xl border border-slate-700/50 shadow-lg shadow-black/20 hover:border-primary/30 transition-all">
                                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-2">
                                     <h3 className="text-lg font-bold text-white">
-                                        Nuevas Instalaciones
+                                        Sede Actual y Alto Rendimiento
                                     </h3>
-                                    <span className="text-primary font-bold bg-primary/10 border border-primary/20 px-3 py-1 rounded-full text-sm w-fit">
-                                        2023
+                                    <span className="text-primary font-bold bg-primary/10 border border-primary/20 px-3 py-1 rounded-full text-sm w-fit uppercase">
+                                        Presente
                                     </span>
                                 </div>
                                 <p className="text-slate-400">
-                                    Inauguración de nuestro centro de alto rendimiento con pista
-                                    certificada y gimnasio especializado.
+                                    Ubicados en el Estadio Salvador de la Plaza del Complejo Polideportivo Simón Bolívar, masificamos el atletismo atendiendo a 80 atletas anualmente. De ellos, el 80% de los más jóvenes son selección regional, el 60% del total son selección estadal y el 20% son selección nacional.
                                 </p>
                             </div>
                         </div>
