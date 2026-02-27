@@ -5,13 +5,20 @@
   --color-primary: #0aff5f;
   --color-primary-hover: #00db4d;
   --color-accent-blue: #00f0ff;
-  --color-background-light: #f6f8f6;
-  --color-background-dark: #0b121c;
-  --color-surface-dark: #131d2b;
-  --color-surface-dark-hover: #1f2a23;
-  --color-surface-darker: #080e16;
-  --color-text-main-dark: #e2e8f0;
-  --color-text-muted-dark: #94a3b8;
+  
+  /* Requested global color changes */
+  --color-background-dark: #121212;
+  --color-surface-dark: #1E1E1E;
+  
+  /* Adjusted supporting dark surfaces for the new #121212 palette */
+  --color-surface-dark-hover: #2a2a2a;
+  --color-surface-darker: #0a0a0a;
+
+  /* Override standard white to match the requested #F4F4F5 for titles and main text */
+  --color-white: #F4F4F5;
+  
+  --color-text-main-dark: #F4F4F5;
+  --color-text-muted-dark: #a1a1aa;
 
   --font-display: "Lexend", sans-serif;
 
@@ -22,7 +29,7 @@
 
 @layer base {
   body {
-    @apply bg-background-dark text-slate-100 font-display min-h-screen selection:bg-primary selection:text-black antialiased;
+    @apply bg-background-dark text-white font-display min-h-screen selection:bg-primary selection:text-black antialiased;
   }
 }
 
