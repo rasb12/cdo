@@ -89,10 +89,10 @@ export default function EquipoStaff() {
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                         {staff.map((member) => (
-                            <div key={member.uid} className="group bg-surface-dark rounded-xl overflow-hidden shadow-lg border border-slate-800 hover:border-slate-600 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 flex flex-col">
-                                <div className="aspect-square bg-slate-900 border-b border-slate-800 relative overflow-hidden">
+                            <div key={member.uid} className="group bg-surface-dark rounded-xl overflow-hidden shadow-lg border border-primary/10 hover:border-primary/40 hover:shadow-xl hover:shadow-primary/10 transition-all duration-300 flex flex-col">
+                                <div className="aspect-square bg-[#0a1f12] border-b border-primary/20 relative overflow-hidden">
                                     <img
-                                        src={member.photoURL || `https://ui-avatars.com/api/?name=${member.displayName || "Staff"}&background=0a0a0a&color=0AFF5F&size=200`}
+                                        src={member.photoURL || `https://ui-avatars.com/api/?name=${member.displayName || "Staff"}&background=0a1f12&color=0AFF5F&size=200`}
                                         alt={member.displayName}
                                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                     />
@@ -112,12 +112,12 @@ export default function EquipoStaff() {
                                     <div className="flex flex-wrap gap-1.5 mt-auto">
                                         {member.specialties && member.specialties.length > 0 ? (
                                             member.specialties.map(spec => (
-                                                <span key={spec} className="px-2 py-0.5 bg-slate-800 text-slate-300 text-[10px] font-bold uppercase rounded border border-slate-700">
+                                                <span key={spec} className="px-2 py-0.5 bg-primary/10 text-primary-hover text-[10px] font-bold uppercase rounded border border-primary/20">
                                                     {spec}
                                                 </span>
                                             ))
                                         ) : (
-                                            <span className="px-2 py-0.5 bg-slate-800 text-slate-500 text-[10px] font-bold uppercase rounded border border-slate-700 italic">
+                                            <span className="px-2 py-0.5 bg-primary/10 text-primary/70 text-[10px] font-bold uppercase rounded border border-primary/20 italic">
                                                 Staff Activo
                                             </span>
                                         )}
@@ -130,7 +130,8 @@ export default function EquipoStaff() {
             </div>
 
             {/* Footer */}
-            <footer className="mt-auto py-8 px-6 border-t border-slate-800 text-center bg-background-dark">
+            <footer className="mt-auto py-8 px-6 border-t border-primary/10 text-center bg-background-dark overflow-hidden relative">
+                <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent"></div>
                 <p className="text-slate-500 text-sm">
                     © {new Date().getFullYear()} Corredores de Oriente. Todos los derechos reservados.
                 </p>

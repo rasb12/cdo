@@ -86,7 +86,7 @@ export default function Nosotros() {
                         Nuestra Historia
                     </h2>
                     <div className="grid grid-cols-[auto_1fr] gap-x-6 relative">
-                        <div className="absolute left-[19px] top-4 bottom-4 w-0.5 bg-slate-700"></div>
+                        <div className="absolute left-[19px] top-4 bottom-4 w-0.5 bg-primary/20"></div>
 
                         {/* Event 1 */}
                         <div className="relative z-10 flex flex-col items-center">
@@ -97,7 +97,7 @@ export default function Nosotros() {
                             </div>
                         </div>
                         <div className="pb-12 pt-1">
-                            <div className="bg-surface-dark p-6 rounded-xl border border-slate-700/50 shadow-lg shadow-black/20 hover:border-primary/30 transition-all">
+                            <div className="bg-surface-dark p-6 rounded-xl border border-primary/20 shadow-lg shadow-black/20 hover:border-primary/40 transition-all">
                                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-2">
                                     <h3 className="text-lg font-bold text-white">Los Orígenes de una Pasión</h3>
                                     <span className="text-primary font-bold bg-primary/10 border border-primary/20 px-3 py-1 rounded-full text-sm w-fit uppercase">
@@ -119,7 +119,7 @@ export default function Nosotros() {
                             </div>
                         </div>
                         <div className="pb-12 pt-1">
-                            <div className="bg-surface-dark p-6 rounded-xl border border-slate-700/50 shadow-lg shadow-black/20 hover:border-primary/30 transition-all">
+                            <div className="bg-surface-dark p-6 rounded-xl border border-primary/20 shadow-lg shadow-black/20 hover:border-primary/40 transition-all">
                                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-2">
                                     <h3 className="text-lg font-bold text-white">
                                         Fundación y Reestructuración
@@ -143,7 +143,7 @@ export default function Nosotros() {
                             </div>
                         </div>
                         <div className="pt-1">
-                            <div className="bg-surface-dark p-6 rounded-xl border border-slate-700/50 shadow-lg shadow-black/20 hover:border-primary/30 transition-all">
+                            <div className="bg-surface-dark p-6 rounded-xl border border-primary/20 shadow-lg shadow-black/20 hover:border-primary/40 transition-all">
                                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-2">
                                     <h3 className="text-lg font-bold text-white">
                                         Sede Actual y Alto Rendimiento
@@ -162,14 +162,14 @@ export default function Nosotros() {
 
                 {/* Misión y Visión */}
                 <section className="mb-20 grid md:grid-cols-2 gap-8">
-                    <div className="bg-gradient-to-br from-surface-dark to-slate-900 rounded-2xl p-8 text-white relative overflow-hidden group border border-slate-700/50 shadow-lg">
+                    <div className="bg-gradient-to-br from-surface-dark to-[#0a1f12] rounded-2xl p-8 text-white relative overflow-hidden group border border-primary/20 shadow-lg">
                         <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
-                            <span className="material-symbols-outlined text-[120px] text-white">
+                            <span className="material-symbols-outlined text-[120px] text-primary">
                                 rocket_launch
                             </span>
                         </div>
                         <div className="relative z-10">
-                            <div className="size-12 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center mb-6">
+                            <div className="size-12 rounded-lg bg-primary/10 border border-primary/30 flex items-center justify-center mb-6 shadow-[0_0_15px_rgba(10,255,95,0.15)]">
                                 <span className="material-symbols-outlined text-primary text-2xl">
                                     target
                                 </span>
@@ -183,14 +183,14 @@ export default function Nosotros() {
                             </p>
                         </div>
                     </div>
-                    <div className="bg-surface-dark border border-slate-700/50 rounded-2xl p-8 relative overflow-hidden group shadow-lg">
+                    <div className="bg-surface-dark border border-primary/20 rounded-2xl p-8 relative overflow-hidden group shadow-lg">
                         <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
-                            <span className="material-symbols-outlined text-[120px] text-white">
+                            <span className="material-symbols-outlined text-[120px] text-primary">
                                 visibility
                             </span>
                         </div>
                         <div className="relative z-10">
-                            <div className="size-12 rounded-lg bg-slate-800 flex items-center justify-center mb-6 border border-slate-700">
+                            <div className="size-12 rounded-lg bg-primary/10 flex items-center justify-center mb-6 border border-primary/30 shadow-[0_0_15px_rgba(10,255,95,0.15)]">
                                 <span className="material-symbols-outlined text-primary text-2xl">
                                     light_mode
                                 </span>
@@ -235,12 +235,12 @@ export default function Nosotros() {
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {staff.map((member) => (
-                                <div key={member.uid} className="group bg-surface-dark rounded-xl overflow-hidden shadow-lg border border-slate-800 hover:border-slate-600 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 flex flex-col">
-                                    <div className="aspect-[4/3] bg-slate-800 overflow-hidden relative">
+                                <div key={member.uid} className="group bg-surface-dark rounded-xl overflow-hidden shadow-lg border border-primary/10 hover:border-primary/40 hover:shadow-xl hover:shadow-primary/10 transition-all duration-300 flex flex-col">
+                                    <div className="aspect-[4/3] bg-[#0a1f12] overflow-hidden relative">
                                         <img
                                             alt={member.displayName}
                                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90 group-hover:opacity-100"
-                                            src={member.photoURL || `https://ui-avatars.com/api/?name=${member.displayName || "Staff"}&background=0a0a0a&color=0AFF5F`}
+                                            src={member.photoURL || `https://ui-avatars.com/api/?name=${member.displayName || "Staff"}&background=0a1f12&color=0AFF5F`}
                                         />
                                         <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-background-dark via-background-dark/80 to-transparent p-4">
                                             <p className="text-primary text-[10px] font-black tracking-widest uppercase">
@@ -258,12 +258,12 @@ export default function Nosotros() {
                                         <div className="flex flex-wrap gap-2 mt-auto">
                                             {member.specialties && member.specialties.length > 0 ? (
                                                 member.specialties.map(spec => (
-                                                    <span key={spec} className="px-2 py-1 bg-slate-800 text-slate-300 text-xs rounded-md border border-slate-700 font-bold uppercase text-[10px]">
+                                                    <span key={spec} className="px-2 py-1 bg-primary/10 text-primary-hover text-xs rounded-md border border-primary/20 font-bold uppercase text-[10px]">
                                                         {spec}
                                                     </span>
                                                 ))
                                             ) : (
-                                                <span className="px-2 py-1 bg-slate-800 text-slate-500 text-xs rounded-md border border-slate-700 font-bold uppercase text-[10px] italic">
+                                                <span className="px-2 py-1 bg-primary/10 text-primary/70 text-xs rounded-md border border-primary/20 font-bold uppercase text-[10px] italic">
                                                     Staff Activo
                                                 </span>
                                             )}
@@ -276,7 +276,7 @@ export default function Nosotros() {
                 </section>
 
                 {/* CTA */}
-                <section className="rounded-2xl bg-gradient-to-br from-surface-dark to-surface-darker border border-slate-800 p-8 md:p-12 text-center relative overflow-hidden shadow-2xl">
+                <section className="rounded-2xl bg-gradient-to-br from-surface-dark to-[#08180e] border border-primary/20 p-8 md:p-12 text-center relative overflow-hidden shadow-2xl">
                     <div
                         className="absolute inset-0 opacity-10"
                         style={{
@@ -304,7 +304,8 @@ export default function Nosotros() {
             </div>
 
             {/* Footer */}
-            <footer className="mt-auto py-8 px-6 border-t border-slate-800 text-center bg-background-dark">
+            <footer className="mt-auto py-8 px-6 border-t border-primary/10 text-center bg-background-dark overflow-hidden relative">
+                <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent"></div>
                 <p className="text-slate-500 text-sm">
                     © 2024 Corredores de Oriente. Todos los derechos reservados.
                 </p>
