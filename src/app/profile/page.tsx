@@ -13,10 +13,27 @@ interface PersonalBest {
     discipline: string;
     type: 'time' | 'distance' | 'points';
     value: number | '';
+    timeString?: string;
     date: string;
     competitionName: string;
     status: 'pending' | 'approved' | 'rejected';
 }
+
+const formatTimeForInput = (secs: number | ''): string => {
+    if (secs === '' || isNaN(secs as number)) return '';
+    const num = Number(secs);
+    const h = Math.floor(num / 3600);
+    const m = Math.floor((num % 3600) / 60);
+    const s = num % 60;
+
+    if (h > 0) {
+        return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toFixed(2).padStart(5, '0').replace('.00', '')}`;
+    }
+    if (m > 0) {
+        return `${m.toString().padStart(2, '0')}:${s.toFixed(2).padStart(5, '0').replace('.00', '')}`;
+    }
+    return s.toString();
+};
 
 // Helper to calculate FVA Category based on age
 function calculateFVACategory(age: number): string {
@@ -671,7 +688,31 @@ function Profile() {
                                                     </div>
                                                     <div className="space-y-1">
                                                         <label className="text-xs text-gray-500 uppercase font-bold">Valor Numérico</label>
-                                                        <input type="number" step="0.01" value={item.value} onChange={(e) => updateHistoryItem(index, "value", e.target.value !== '' ? parseFloat(e.target.value) : '')} className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-primary font-bold text-sm focus:outline-none focus:border-primary/50" placeholder="Ej: 10.51 / 8.12" />
+                                                        {item.type === 'time' ? (
+                                                            <input
+                                                                type="text"
+                                                                value={item.timeString !== undefined ? item.timeString : (item.value ? formatTimeForInput(item.value as number) : '')}
+                                                                onChange={(e) => {
+                                                                    const raw = e.target.value;
+                                                                    const newHistory = [...history];
+                                                                    newHistory[index].timeString = raw;
+
+                                                                    const parts = raw.split(':').reverse();
+                                                                    let secs = 0;
+                                                                    if (parts[0]) secs += parseFloat(parts[0]) || 0;
+                                                                    if (parts[1]) secs += (parseInt(parts[1]) || 0) * 60;
+                                                                    if (parts[2]) secs += (parseInt(parts[2]) || 0) * 3600;
+
+                                                                    newHistory[index].value = isNaN(secs) ? '' : secs;
+                                                                    if (newHistory[index].status === 'approved') newHistory[index].status = 'pending';
+                                                                    setHistory(newHistory);
+                                                                }}
+                                                                className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-primary font-bold text-sm focus:outline-none focus:border-primary/50"
+                                                                placeholder="Ej: 1:15:30, 45:10, o 10.51"
+                                                            />
+                                                        ) : (
+                                                            <input type="number" step="0.01" value={item.value} onChange={(e) => updateHistoryItem(index, "value", e.target.value !== '' ? parseFloat(e.target.value) : '')} className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-primary font-bold text-sm focus:outline-none focus:border-primary/50" placeholder="Ej: 10.51 / 8.12" />
+                                                        )}
                                                     </div>
                                                 </div>
                                             </div>
