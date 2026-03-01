@@ -3,14 +3,19 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { withRoleProtection } from "@/components/withRoleProtection";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc, collection, query, where, getDocs, writeBatch } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import { updateProfile } from "firebase/auth";
 import { CldUploadWidget } from "next-cloudinary";
 
-interface HistoryItem {
-    event: string;
-    pb: string;
+interface PersonalBest {
+    id?: string;
+    discipline: string;
+    type: 'time' | 'distance' | 'points';
+    value: number | '';
+    date: string;
+    competitionName: string;
+    status: 'pending' | 'approved' | 'rejected';
 }
 
 // Helper to calculate FVA Category based on age
@@ -59,7 +64,8 @@ function Profile() {
 
     // Athletic Data
     const [specialties, setSpecialties] = useState<string[]>([]);
-    const [history, setHistory] = useState<HistoryItem[]>([]);
+    const [history, setHistory] = useState<PersonalBest[]>([]);
+    const [deletedHistoryIds, setDeletedHistoryIds] = useState<string[]>([]);
 
     // Admin Fields
     const [profession, setProfession] = useState("");
@@ -127,7 +133,31 @@ function Profile() {
                         setShoeSize(data.shoeSize || "");
 
                         setSpecialties(data.specialties || []);
-                        setHistory(data.history || []);
+
+                        // Fetch personal bests from new collection
+                        const pbQ = query(
+                            collection(db, "personal_bests"),
+                            where("athleteId", "==", user.uid)
+                        );
+                        const pbSnap = await getDocs(pbQ);
+                        const fetchedPBs = pbSnap.docs.map(d => {
+                            const pbd = d.data();
+                            let dateStr = "";
+                            if (pbd.date?.seconds) {
+                                const dt = new Date(pbd.date.seconds * 1000);
+                                dateStr = dt.toISOString().split('T')[0];
+                            }
+                            return {
+                                id: d.id,
+                                discipline: pbd.discipline || "",
+                                type: pbd.type || "time",
+                                value: pbd.value || '',
+                                competitionName: pbd.competitionName || "",
+                                date: dateStr,
+                                status: pbd.status || "pending"
+                            } as PersonalBest;
+                        });
+                        setHistory(fetchedPBs);
                     } else if (STAFF_ROLES.includes(user.role)) {
                         setProfession(data.profession || "");
                         setCertifications(data.certifications || "");
@@ -169,7 +199,6 @@ function Profile() {
                 updatePayload.pantsSize = pantsSize;
                 updatePayload.shoeSize = shoeSize;
                 updatePayload.specialties = specialties;
-                updatePayload.history = history;
                 // Save computed data so other views (like admin) can see it directly
                 updatePayload.age = computedAge;
                 updatePayload.fvaCategory = fvaCategory;
@@ -180,6 +209,38 @@ function Profile() {
             }
 
             await updateDoc(docRef, updatePayload);
+
+            if (user.role === "athlete") {
+                // Update personal bests collection
+                const batch = writeBatch(db);
+                // handle deletions
+                for (const delId of deletedHistoryIds) {
+                    batch.delete(doc(db, "personal_bests", delId));
+                }
+
+                // handle upserts
+                for (const item of history) {
+                    const itemData = {
+                        athleteId: user.uid,
+                        discipline: item.discipline,
+                        type: item.type,
+                        value: Number(item.value),
+                        competitionName: item.competitionName,
+                        date: item.date ? { seconds: new Date(item.date).getTime() / 1000 } : null,
+                        status: item.status || 'pending'
+                    };
+
+                    if (item.id && !item.id.startsWith('new-')) {
+                        batch.update(doc(db, "personal_bests", item.id), itemData);
+                    } else {
+                        const newRef = doc(collection(db, "personal_bests"));
+                        batch.set(newRef, itemData);
+                    }
+                }
+                await batch.commit();
+                setDeletedHistoryIds([]);
+            }
+
             setMessage({ text: "Perfil actualizado exitosamente.", type: "success" });
             window.scrollTo({ top: 0, behavior: 'smooth' });
 
@@ -200,16 +261,25 @@ function Profile() {
 
     // HISTORY HANDLERS (for athletes)
     const addHistoryItem = () => {
-        setHistory([...history, { event: "", pb: "" }]);
+        setHistory([...history, { id: `new-${Date.now()}`, discipline: "", type: "time", value: "", date: "", competitionName: "", status: "pending" }]);
     };
 
-    const updateHistoryItem = (index: number, field: keyof HistoryItem, value: string) => {
+    const updateHistoryItem = (index: number, field: keyof PersonalBest, value: any) => {
         const newHistory = [...history];
-        newHistory[index][field] = value;
+        newHistory[index] = { ...newHistory[index], [field]: value };
+
+        // Return to pending if approved mark is modified
+        if (newHistory[index].status === 'approved' && (field === 'value' || field === 'discipline' || field === 'type' || field === 'date' || field === 'competitionName')) {
+            newHistory[index].status = 'pending';
+        }
         setHistory(newHistory);
     };
 
     const removeHistoryItem = (index: number) => {
+        const item = history[index];
+        if (item.id && !item.id.startsWith('new-')) {
+            setDeletedHistoryIds([...deletedHistoryIds, item.id]);
+        }
         const newHistory = [...history];
         newHistory.splice(index, 1);
         setHistory(newHistory);
@@ -572,21 +642,38 @@ function Profile() {
                                 <div className="space-y-3">
                                     {history.map((item, index) => (
                                         <div key={index} className="flex flex-col md:flex-row items-center gap-3">
-                                            <div className="flex-1 w-full bg-black/30 border border-white/10 rounded-lg p-3 grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                <input
-                                                    type="text"
-                                                    value={item.event}
-                                                    onChange={(e) => updateHistoryItem(index, "event", e.target.value)}
-                                                    className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-primary/50"
-                                                    placeholder="Evento (Ej: Maratón Caracas 2023)"
-                                                />
-                                                <input
-                                                    type="text"
-                                                    value={item.pb}
-                                                    onChange={(e) => updateHistoryItem(index, "pb", e.target.value)}
-                                                    className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-primary font-bold text-sm focus:outline-none focus:border-primary/50"
-                                                    placeholder="Marca (Ej: 03:15:40)"
-                                                />
+                                            <div className="flex-1 w-full bg-black/30 border border-white/10 rounded-lg p-3 space-y-3">
+                                                <div className="flex items-center justify-between">
+                                                    <span className={`text-xs font-bold px-2 py-1 rounded border ${item.status === 'approved' ? 'bg-green-500/10 text-green-400 border-green-500/20' : item.status === 'rejected' ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'}`}>
+                                                        {item.status === 'approved' ? 'Aprobado' : item.status === 'rejected' ? 'Rechazado' : 'Pendiente Revisión'}
+                                                    </span>
+                                                </div>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                                                    <div className="space-y-1 lg:col-span-2">
+                                                        <label className="text-xs text-gray-500 uppercase font-bold">Competencia</label>
+                                                        <input type="text" value={item.competitionName} onChange={(e) => updateHistoryItem(index, "competitionName", e.target.value)} className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-primary/50" placeholder="Ej: Maratón Caracas 2023" />
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <label className="text-xs text-gray-500 uppercase font-bold">Fecha</label>
+                                                        <input type="date" value={item.date} onChange={(e) => updateHistoryItem(index, "date", e.target.value)} className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-primary/50 [&::-webkit-calendar-picker-indicator]:filter-invert" />
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <label className="text-xs text-gray-500 uppercase font-bold">Disciplina</label>
+                                                        <input type="text" value={item.discipline} onChange={(e) => updateHistoryItem(index, "discipline", e.target.value)} className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-primary/50" placeholder="Ej: 5K, 100m, Salto..." />
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <label className="text-xs text-gray-500 uppercase font-bold">Tipo de Marca</label>
+                                                        <select value={item.type} onChange={(e) => updateHistoryItem(index, "type", e.target.value)} className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-primary/50">
+                                                            <option value="time">Tiempo (s)</option>
+                                                            <option value="distance">Distancia (m)</option>
+                                                            <option value="points">Puntos</option>
+                                                        </select>
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <label className="text-xs text-gray-500 uppercase font-bold">Valor Numérico</label>
+                                                        <input type="number" step="0.01" value={item.value} onChange={(e) => updateHistoryItem(index, "value", e.target.value !== '' ? parseFloat(e.target.value) : '')} className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-primary font-bold text-sm focus:outline-none focus:border-primary/50" placeholder="Ej: 10.51 / 8.12" />
+                                                    </div>
+                                                </div>
                                             </div>
                                             <button
                                                 type="button"

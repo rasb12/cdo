@@ -2,16 +2,42 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, collection, query, where, getDocs, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { withRoleProtection } from "@/components/withRoleProtection";
 import { STAFF_ROLES } from "@/lib/permissions";
 import Link from "next/link";
 
-interface HistoryItem {
-    event: string;
-    pb: string;
+interface PersonalBest {
+    id: string;
+    athleteId: string;
+    discipline: string;
+    value: number;
+    type: 'time' | 'distance' | 'points';
+    date: any;
+    competitionName: string;
+    status: 'pending' | 'approved' | 'rejected';
 }
+
+const formatTime = (secs: number) => {
+    const hrs = Math.floor(secs / 3600);
+    const mins = Math.floor((secs % 3600) / 60);
+    const s = secs % 60;
+    if (hrs > 0) return `${hrs}:${mins.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    return `${mins.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+};
+
+const formatMetric = (type: string, value: number) => {
+    if (type === 'time') {
+        if (value < 60) return `${value.toFixed(2)}s`;
+        const mins = Math.floor(value / 60);
+        const secs = (value % 60).toFixed(value % 1 !== 0 ? 2 : 0);
+        return mins > 59 ? formatTime(value) : `${mins}:${secs.padStart(value % 1 !== 0 ? 5 : 2, '0')}`;
+    }
+    if (type === 'distance') return `${value.toFixed(2)} m`;
+    if (type === 'points') return `${value} pts`;
+    return `${value}`;
+};
 
 function AthleteDetailView() {
     const params = useParams();
@@ -20,6 +46,7 @@ function AthleteDetailView() {
 
     const [loading, setLoading] = useState(true);
     const [athlete, setAthlete] = useState<any>(null);
+    const [personalBests, setPersonalBests] = useState<PersonalBest[]>([]);
 
     useEffect(() => {
         async function fetchAthlete() {
@@ -29,6 +56,13 @@ function AthleteDetailView() {
                 const docSnap = await getDoc(docRef);
                 if (docSnap.exists() && docSnap.data().role === "athlete") {
                     setAthlete(docSnap.data());
+
+                    // Fetch PBs
+                    const pbQ = query(collection(db, "personal_bests"), where("athleteId", "==", id));
+                    const pbSnap = await getDocs(pbQ);
+                    const pbs = pbSnap.docs.map(d => ({ id: d.id, ...d.data() } as PersonalBest));
+                    setPersonalBests(pbs);
+
                 } else {
                     setAthlete(null);
                 }
@@ -40,6 +74,16 @@ function AthleteDetailView() {
         }
         fetchAthlete();
     }, [id]);
+
+    const handleApproval = async (pbId: string, newStatus: 'approved' | 'rejected') => {
+        try {
+            await updateDoc(doc(db, "personal_bests", pbId), { status: newStatus });
+            setPersonalBests(prev => prev.map(pb => pb.id === pbId ? { ...pb, status: newStatus } : pb));
+        } catch (error) {
+            console.error("Error updating PB status:", error);
+            alert("Error al actualizar la marca.");
+        }
+    };
 
     if (loading) {
         return (
@@ -191,14 +235,48 @@ function AthleteDetailView() {
 
                     <div>
                         <span className="text-sm font-bold text-gray-400 uppercase tracking-wider block mb-3">
-                            Récords Personales (PBs) Históricos
+                            Récords Personales (PBs) Registrados
                         </span>
-                        {athlete.history && athlete.history.length > 0 ? (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                {athlete.history.map((record: HistoryItem, idx: number) => (
-                                    <div key={idx} className="bg-black/30 border border-white/5 rounded-lg p-3 flex justify-between items-center">
-                                        <span className="text-sm text-gray-300 font-medium">{record.event}</span>
-                                        <span className="text-sm font-black text-primary">{record.pb}</span>
+                        {personalBests.length > 0 ? (
+                            <div className="space-y-3">
+                                {personalBests.map((pb) => (
+                                    <div key={pb.id} className="bg-black/30 border border-white/5 rounded-lg p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                        <div>
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <span className="text-white font-bold">{pb.discipline}</span>
+                                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${pb.status === 'approved' ? 'bg-green-500/10 text-green-400 border-green-500/20' : pb.status === 'rejected' ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'}`}>
+                                                    {pb.status === 'approved' ? 'Aprobado' : pb.status === 'rejected' ? 'Rechazado' : 'Pendiente'}
+                                                </span>
+                                            </div>
+                                            <div className="text-sm text-gray-400">
+                                                <span>{pb.competitionName}</span>
+                                                <span className="mx-2">•</span>
+                                                <span>{pb.date?.seconds ? new Date(pb.date.seconds * 1000).toLocaleDateString() : 'Fecha N/A'}</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center gap-4">
+                                            <span className="text-xl font-black text-primary">{formatMetric(pb.type, pb.value)}</span>
+
+                                            {pb.status === 'pending' && (
+                                                <div className="flex items-center gap-2 border-l border-white/10 pl-4">
+                                                    <button
+                                                        onClick={() => handleApproval(pb.id, 'approved')}
+                                                        className="size-8 rounded bg-green-500/10 hover:bg-green-500 text-green-500 hover:text-white border border-green-500/20 flex items-center justify-center transition-colors tooltip"
+                                                        title="Aprobar"
+                                                    >
+                                                        <span className="material-symbols-outlined text-[16px]">check</span>
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleApproval(pb.id, 'rejected')}
+                                                        className="size-8 rounded bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/20 flex items-center justify-center transition-colors tooltip"
+                                                        title="Rechazar"
+                                                    >
+                                                        <span className="material-symbols-outlined text-[16px]">close</span>
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 ))}
                             </div>

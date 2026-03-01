@@ -5,18 +5,18 @@
   --color-primary: #0aff5f;
   --color-primary-hover: #00db4d;
   --color-accent-blue: #00f0ff;
-  
+
   /* Requested global color changes */
   --color-background-dark: #121212;
   --color-surface-dark: #1E1E1E;
-  
+
   /* Adjusted supporting dark surfaces for the new #121212 palette */
   --color-surface-dark-hover: #2a2a2a;
   --color-surface-darker: #0a0a0a;
 
   /* Override standard white to match the requested #F4F4F5 for titles and main text */
   --color-white: #F4F4F5;
-  
+
   --color-text-main-dark: #F4F4F5;
   --color-text-muted-dark: #a1a1aa;
 
@@ -37,22 +37,53 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+
   .scrollbar-hide {
-    -ms-overflow-style: none; /* IE and Edge */
-    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
   }
 
-  ::-webkit-scrollbar {
-    width: 8px;
+  /* Mobile scrollbars */
+  @media (max-width: 768px) {
+    ::-webkit-scrollbar:vertical {
+      width: 0px;
+      display: none;
+    }
+
+    ::-webkit-scrollbar:horizontal {
+      height: 2px;
+    }
+
+    ::-webkit-scrollbar-track:horizontal {
+      background: rgba(0, 0, 0, 0.3);
+    }
+
+    ::-webkit-scrollbar-thumb:horizontal {
+      background: var(--color-primary);
+      border-radius: 2px;
+    }
   }
-  ::-webkit-scrollbar-track {
-    background: var(--color-background-dark);
-  }
-  ::-webkit-scrollbar-thumb {
-    background: #2a3b55;
-    border-radius: 4px;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: var(--color-primary);
+
+  /* Desktop scrollbars */
+  @media (min-width: 769px) {
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--color-background-dark);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #2a3b55;
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--color-primary);
+    }
   }
 }
