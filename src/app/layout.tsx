@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Lexend } from "next/font/google";
+import Script from "next/script";
 import { Sidebar } from "@/components/Sidebar";
 import { AuthProvider } from "@/context/AuthContext";
 import { IncompleteProfilePopup } from "@/components/IncompleteProfilePopup";
@@ -14,6 +15,11 @@ export const metadata: Metadata = {
   title: "Corredores de Oriente",
   description: "Escuela de Atletismo - Corredores de Oriente",
   manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "CDOriente",
+  }
 };
 
 export const viewport: Viewport = {
@@ -45,6 +51,19 @@ export default function RootLayout({
             {children}
           </main>
           <IncompleteProfilePopup />
+          <Script id="register-sw" strategy="afterInteractive">
+            {`
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', function() {
+                  navigator.serviceWorker.register('/sw.js').then(function(registration) {
+                    console.log('SW registered: ', registration.scope);
+                  }, function(err) {
+                    console.log('SW registration failed: ', err);
+                  });
+                });
+              }
+            `}
+          </Script>
         </AuthProvider>
       </body>
     </html>
