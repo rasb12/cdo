@@ -37,16 +37,16 @@ export default function Home() {
               </div>
             </div>
 
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-white leading-[1.1] sm:leading-[1.05] tracking-tighter drop-shadow-lg uppercase pb-2">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-white leading-[1.1] sm:leading-[1.1] tracking-tighter drop-shadow-lg uppercase pb-2">
               ENTRENA
               <br />
               CON LOS
               <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent-blue drop-shadow-[0_0_10px_rgba(10,255,95,0.3)] pb-2 inline-block">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent-blue drop-shadow-[0_0_10px_rgba(10,255,95,0.3)] pb-4 pr-2 inline-block">
                 MEJORES
               </span>
             </h1>
-            <p className="text-gray-300 text-base sm:text-lg md:text-xl font-light leading-relaxed max-w-2xl bg-black/20 p-2 -ml-2 rounded-lg">
+            <p className="text-gray-300 text-base sm:text-lg md:text-xl font-light leading-relaxed max-w-lg">
               Supera tus límites físicos y mentales. Formación deportiva de élite
               para atletas de alto rendimiento bajo metodología olímpica certificada.
             </p>
