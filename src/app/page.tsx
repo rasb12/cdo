@@ -8,7 +8,7 @@ export default function Home() {
       <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-accent-blue/5 rounded-full blur-[100px] pointer-events-none"></div>
 
       <div className="max-w-[1200px] mx-auto p-4 md:p-8 lg:p-12 pb-24 relative z-10">
-        <section className="relative w-full rounded-2xl overflow-hidden min-h-[450px] md:min-h-[500px] flex items-end p-6 sm:p-8 md:p-12 mb-12 group border border-white/10 shadow-tech">
+        <section className="relative w-full rounded-2xl overflow-hidden min-h-[500px] md:min-h-[550px] flex items-end p-6 sm:p-8 md:p-12 pb-10 sm:pb-12 mb-12 group border border-white/10 shadow-tech">
           <div
             className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
             style={{
@@ -17,7 +17,7 @@ export default function Home() {
             }}
           ></div>
           <div className="absolute inset-0 bg-gradient-to-t from-background-dark via-background-dark/80 to-transparent"></div>
-          <div className="relative z-10 flex flex-col gap-4 sm:gap-6 max-w-2xl w-full">
+          <div className="relative z-10 flex flex-col gap-4 sm:gap-6 max-w-3xl w-full">
             <div className="flex gap-3 flex-wrap">
               <div className="bg-black/40 backdrop-blur-md border border-primary/50 px-3 py-1.5 rounded-full flex items-center gap-2 shadow-glow">
                 <span className="material-symbols-outlined text-primary text-sm drop-shadow-[0_0_5px_rgba(10,255,95,0.8)]">
@@ -37,16 +37,16 @@ export default function Home() {
               </div>
             </div>
 
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-white leading-[0.95] tracking-tighter drop-shadow-lg uppercase">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-white leading-[1.1] sm:leading-[1.05] tracking-tighter drop-shadow-lg uppercase pb-2">
               ENTRENA
               <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent-blue drop-shadow-[0_0_10px_rgba(10,255,95,0.3)]">
-                CON LOS
-              </span>
+              CON LOS
               <br />
-              MEJORES
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent-blue drop-shadow-[0_0_10px_rgba(10,255,95,0.3)] pb-2 inline-block">
+                MEJORES
+              </span>
             </h1>
-            <p className="text-gray-300 text-base sm:text-lg md:text-xl font-light leading-relaxed max-w-lg">
+            <p className="text-gray-300 text-base sm:text-lg md:text-xl font-light leading-relaxed max-w-2xl bg-black/20 p-2 -ml-2 rounded-lg">
               Supera tus límites físicos y mentales. Formación deportiva de élite
               para atletas de alto rendimiento bajo metodología olímpica certificada.
             </p>
