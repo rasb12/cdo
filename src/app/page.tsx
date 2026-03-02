@@ -37,18 +37,18 @@ export default function Home() {
               </div>
             </div>
 
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-white leading-[0.95] tracking-tighter drop-shadow-lg">
-              ENTRENADOR
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-white leading-[0.95] tracking-tighter drop-shadow-lg uppercase">
+              ENTRENA
               <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent-blue drop-shadow-[0_0_10px_rgba(10,255,95,0.3)]">
-                CERTIFICADO
+                CON LOS
               </span>
               <br />
-              INTERNACIONAL
+              MEJORES
             </h1>
             <p className="text-gray-300 text-base sm:text-lg md:text-xl font-light leading-relaxed max-w-lg">
-              Entrena con los mejores y supera tus límites. Formación profesional
-              para atletas de alto rendimiento con metodología olímpica.
+              Supera tus límites físicos y mentales. Formación deportiva de élite
+              para atletas de alto rendimiento bajo metodología olímpica certificada.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-2 sm:mt-4 w-full">
               <Link href="/register" className="w-full sm:w-auto flex items-center justify-center rounded-lg h-12 px-8 bg-primary hover:bg-primary-hover text-black text-base font-bold tracking-wide transition-all shadow-glow hover:shadow-[0_0_20px_rgba(10,255,95,0.6)]">
