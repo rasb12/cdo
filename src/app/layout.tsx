@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Lexend } from "next/font/google";
 import { Sidebar } from "@/components/Sidebar";
 import { AuthProvider } from "@/context/AuthContext";
@@ -13,6 +13,11 @@ const lexend = Lexend({
 export const metadata: Metadata = {
   title: "Corredores de Oriente",
   description: "Escuela de Atletismo - Corredores de Oriente",
+  manifest: "/manifest.json",
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0AFF5F",
 };
 
 export default function RootLayout({
