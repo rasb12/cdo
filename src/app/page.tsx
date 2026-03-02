@@ -47,8 +47,7 @@ export default function Home() {
               </span>
             </h1>
             <p className="text-gray-300 text-base sm:text-lg md:text-xl font-light leading-relaxed max-w-lg">
-              Supera tus límites físicos y mentales. Formación deportiva de élite
-              para atletas de alto rendimiento bajo metodología olímpica certificada.
+              Prepárate con entrenadores certificados internacionalmente y supera tus límites físicos y mentales. Formación deportiva de élite para atletas de alto rendimiento bajo metodología olímpica.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-2 sm:mt-4 w-full">
               <Link href="/register" className="w-full sm:w-auto flex items-center justify-center rounded-lg h-12 px-8 bg-primary hover:bg-primary-hover text-black text-base font-bold tracking-wide transition-all shadow-glow hover:shadow-[0_0_20px_rgba(10,255,95,0.6)]">
