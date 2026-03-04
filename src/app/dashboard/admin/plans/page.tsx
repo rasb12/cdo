@@ -13,6 +13,7 @@ interface Athlete {
     displayName: string;
     email: string;
     specialties?: string[];
+    trainingLevel?: string;
 }
 
 interface MainBlockExercise {
@@ -143,6 +144,24 @@ function CreatePlan() {
             setSelectedAthleteIds([]);
         } else {
             setSelectedAthleteIds(athletes.map(a => a.uid));
+        }
+    };
+
+    const selectGroup = (level: string) => {
+        const groupAthletes = athletes.filter(a => a.trainingLevel === level).map(a => a.uid);
+        if (groupAthletes.length === 0) return; // No action if empty group
+
+        const allGroupInSelected = groupAthletes.every(uid => selectedAthleteIds.includes(uid));
+
+        if (allGroupInSelected) {
+            // Remueve a todo el grupo si ya están todos seleccionados
+            setSelectedAthleteIds(prev => prev.filter(uid => !groupAthletes.includes(uid)));
+        } else {
+            // Añade a todos los del grupo a la lista existente
+            setSelectedAthleteIds(prev => {
+                const combined = new Set([...prev, ...groupAthletes]);
+                return Array.from(combined);
+            });
         }
     };
 
@@ -464,10 +483,37 @@ function CreatePlan() {
                                 <button
                                     type="button"
                                     onClick={selectAllAthletes}
-                                    className="w-full text-xs font-bold uppercase tracking-wider text-gray-400 hover:text-white mb-4 py-2 border border-white/10 rounded-lg hover:bg-white/5 transition-colors"
+                                    className="w-full text-xs font-bold uppercase tracking-wider text-gray-400 hover:text-white mb-3 py-2 border border-white/10 rounded-lg hover:bg-white/5 transition-colors"
                                 >
                                     {selectedAthleteIds.length === athletes.length ? "Deseleccionar Todos" : "Seleccionar Escuela Ent."}
                                 </button>
+
+                                <div className="grid grid-cols-3 gap-2 mb-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => selectGroup('Básico')}
+                                        className="text-[10px] font-bold uppercase py-2 rounded-lg border border-white/10 text-gray-400 hover:text-primary hover:border-primary/30 transition-colors bg-black/20"
+                                        title="Seleccionar grupo Básico"
+                                    >
+                                        Básico
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => selectGroup('Intermedio')}
+                                        className="text-[10px] font-bold uppercase py-2 rounded-lg border border-white/10 text-gray-400 hover:text-primary hover:border-primary/30 transition-colors bg-black/20"
+                                        title="Seleccionar grupo Intermedio"
+                                    >
+                                        Interm.
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => selectGroup('Avanzado')}
+                                        className="text-[10px] font-bold uppercase py-2 rounded-lg border border-white/10 text-gray-400 hover:text-primary hover:border-primary/30 transition-colors bg-black/20"
+                                        title="Seleccionar grupo Avanzado"
+                                    >
+                                        Avanzado
+                                    </button>
+                                </div>
 
                                 <div className="flex-1 overflow-y-auto pr-2 space-y-2 custom-scrollbar">
                                     {athletes.length === 0 ? (
@@ -497,6 +543,11 @@ function CreatePlan() {
                                                             </p>
                                                         ) : (
                                                             <p className="text-[10px] text-gray-600 truncate uppercase mt-0.5">Sin Especialidad</p>
+                                                        )}
+                                                        {athlete.trainingLevel && (
+                                                            <span className="inline-block mt-1.5 px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-white/5 border border-white/10 text-primary">
+                                                                {athlete.trainingLevel}
+                                                            </span>
                                                         )}
                                                     </div>
                                                 </div>

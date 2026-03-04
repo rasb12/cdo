@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { doc, getDoc, collection, query, where, getDocs, updateDoc } from "firebase/firestore";
+import { doc, getDoc, collection, query, where, getDocs, updateDoc, deleteDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { withRoleProtection } from "@/components/withRoleProtection";
 import { STAFF_ROLES } from "@/lib/permissions";
@@ -85,6 +85,28 @@ function AthleteDetailView() {
         }
     };
 
+    const handleDeletePB = async (pbId: string) => {
+        if (!window.confirm("¿Seguro que deseas eliminar esta marca deportiva?")) return;
+        try {
+            await deleteDoc(doc(db, "personal_bests", pbId));
+            setPersonalBests(prev => prev.filter(pb => pb.id !== pbId));
+        } catch (error) {
+            console.error("Error deleting PB:", error);
+            alert("Error al eliminar la marca.");
+        }
+    };
+
+    const handleTrainingLevelChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const newLevel = e.target.value;
+        try {
+            await updateDoc(doc(db, "users", id), { trainingLevel: newLevel });
+            setAthlete((prev: any) => ({ ...prev, trainingLevel: newLevel }));
+        } catch (error) {
+            console.error("Error updating training level:", error);
+            alert("Error al actualizar el nivel de entrenamiento.");
+        }
+    };
+
     if (loading) {
         return (
             <div className="p-10 flex justify-center items-center h-[50vh]">
@@ -153,7 +175,11 @@ function AthleteDetailView() {
                         <ul className="space-y-4">
                             <li className="flex justify-between border-b border-white/5 pb-2">
                                 <span className="text-gray-400 text-sm font-bold uppercase">Cédula</span>
-                                <span className="text-white font-medium">{athlete.idCard || "N/A"}</span>
+                                {athlete.idCard ? (
+                                    <span className="text-white font-medium">{athlete.idCard}</span>
+                                ) : (
+                                    <span className="text-red-500 font-bold flex items-center gap-1"><span className="material-symbols-outlined text-[16px]">error</span> Faltante</span>
+                                )}
                             </li>
                             <li className="flex justify-between border-b border-white/5 pb-2">
                                 <span className="text-gray-400 text-sm font-bold uppercase">Edad</span>
@@ -161,7 +187,11 @@ function AthleteDetailView() {
                             </li>
                             <li className="flex justify-between border-b border-white/5 pb-2">
                                 <span className="text-gray-400 text-sm font-bold uppercase">F. Nacimiento</span>
-                                <span className="text-white font-medium">{athlete.dob || "N/A"}</span>
+                                {athlete.dob ? (
+                                    <span className="text-white font-medium">{athlete.dob}</span>
+                                ) : (
+                                    <span className="text-red-500 font-bold flex items-center gap-1"><span className="material-symbols-outlined text-[16px]">error</span> Faltante</span>
+                                )}
                             </li>
                             <li className="flex justify-between border-b border-white/5 pb-2">
                                 <span className="text-gray-400 text-sm font-bold uppercase">Categoría FVA</span>
@@ -169,11 +199,32 @@ function AthleteDetailView() {
                             </li>
                             <li className="flex justify-between border-b border-white/5 pb-2">
                                 <span className="text-gray-400 text-sm font-bold uppercase">Tipo Sangre</span>
-                                <span className="text-red-400 font-bold">{athlete.bloodType || "N/A"}</span>
+                                {athlete.bloodType ? (
+                                    <span className="text-red-400 font-bold">{athlete.bloodType}</span>
+                                ) : (
+                                    <span className="text-red-500 font-bold flex items-center gap-1"><span className="material-symbols-outlined text-[16px]">error</span> Faltante</span>
+                                )}
                             </li>
-                            <li className="flex justify-between pb-2">
+                            <li className="flex justify-between border-b border-white/5 pb-2">
                                 <span className="text-gray-400 text-sm font-bold uppercase">Teléfono</span>
-                                <span className="text-white font-medium">{athlete.phone || "N/A"}</span>
+                                {athlete.phone ? (
+                                    <span className="text-white font-medium">{athlete.phone}</span>
+                                ) : (
+                                    <span className="text-red-500 font-bold flex items-center gap-1"><span className="material-symbols-outlined text-[16px]">error</span> Faltante</span>
+                                )}
+                            </li>
+                            <li className="flex justify-between items-center pt-2">
+                                <span className="text-gray-400 text-sm font-bold uppercase">Nivel / Grupo</span>
+                                <select
+                                    value={athlete.trainingLevel || ""}
+                                    onChange={handleTrainingLevelChange}
+                                    className="bg-black/50 border border-white/10 rounded px-3 py-1.5 text-sm text-primary font-bold focus:outline-none focus:border-primary transition-colors hover:bg-white/5"
+                                >
+                                    <option value="" disabled>Asignar Nivel...</option>
+                                    <option value="Básico">Básico</option>
+                                    <option value="Intermedio">Intermedio</option>
+                                    <option value="Avanzado">Avanzado</option>
+                                </select>
                             </li>
                         </ul>
                     </section>
@@ -204,7 +255,11 @@ function AthleteDetailView() {
 
                         <div className="mt-6 pt-4 border-t border-white/5">
                             <span className="text-gray-400 text-sm font-bold uppercase block mb-1">Dirección Registrada</span>
-                            <span className="text-white text-sm leading-relaxed">{athlete.address || "N/A"}</span>
+                            {athlete.address ? (
+                                <span className="text-white text-sm leading-relaxed">{athlete.address}</span>
+                            ) : (
+                                <span className="text-red-500 text-sm font-bold flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">error</span> Faltante</span>
+                            )}
                         </div>
                     </section>
                 </div>
@@ -276,6 +331,17 @@ function AthleteDetailView() {
                                                     </button>
                                                 </div>
                                             )}
+
+                                            {/* Admin Delete Action */}
+                                            <div className="flex items-center ml-2">
+                                                <button
+                                                    onClick={() => handleDeletePB(pb.id)}
+                                                    className="size-8 rounded bg-black hover:bg-red-500/20 text-gray-500 hover:text-red-500 border border-white/10 hover:border-red-500/20 flex items-center justify-center transition-colors tooltip"
+                                                    title="Eliminar permanentemente"
+                                                >
+                                                    <span className="material-symbols-outlined text-[16px]">delete</span>
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 ))}

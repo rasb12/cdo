@@ -228,6 +228,25 @@ function Profile() {
             await updateDoc(docRef, updatePayload);
 
             if (user.role === "athlete") {
+                // Validation: Check for duplicate PBs (same discipline + competition Name)
+                const pbSet = new Set<string>();
+                let hasDuplicate = false;
+
+                for (const item of history) {
+                    const key = `${item.discipline.trim().toLowerCase()}|${item.competitionName.trim().toLowerCase()}`;
+                    if (pbSet.has(key)) {
+                        hasDuplicate = true;
+                        break;
+                    }
+                    pbSet.add(key);
+                }
+
+                if (hasDuplicate) {
+                    setMessage({ text: "Error: Tienes marcas duplicadas (Misma disciplina y misma competencia). Corrige los registros para continuar.", type: "error" });
+                    setSaving(false);
+                    return;
+                }
+
                 // Update personal bests collection
                 const batch = writeBatch(db);
                 // handle deletions
@@ -448,7 +467,10 @@ function Profile() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                            <label className="text-sm font-bold text-gray-400 uppercase tracking-wider block">Nro. Telefónico</label>
+                            <label className="text-sm font-bold text-gray-400 uppercase tracking-wider flex items-center justify-between">
+                                <span>Nro. Telefónico</span>
+                                {!phone && user?.role === 'athlete' && <span className="text-red-500 font-bold flex items-center gap-1 text-[10px]"><span className="material-symbols-outlined text-[14px]">error</span> FALTANTE</span>}
+                            </label>
                             <input
                                 type="tel"
                                 value={phone}
@@ -458,7 +480,10 @@ function Profile() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-bold text-gray-400 uppercase tracking-wider block">Dirección Físíca</label>
+                            <label className="text-sm font-bold text-gray-400 uppercase tracking-wider flex items-center justify-between">
+                                <span>Dirección Físíca</span>
+                                {!address && user?.role === 'athlete' && <span className="text-red-500 font-bold flex items-center gap-1 text-[10px]"><span className="material-symbols-outlined text-[14px]">error</span> FALTANTE</span>}
+                            </label>
                             <input
                                 type="text"
                                 value={address}
@@ -480,7 +505,10 @@ function Profile() {
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div className="space-y-2">
-                                <label className="text-sm font-bold text-gray-400 uppercase tracking-wider block">Cédula de Identidad</label>
+                                <label className="text-sm font-bold text-gray-400 uppercase tracking-wider flex items-center justify-between">
+                                    <span>Cédula de Identidad</span>
+                                    {!idCard && <span className="text-red-500 font-bold flex items-center gap-1 text-[10px]"><span className="material-symbols-outlined text-[14px]">error</span> FALTANTE</span>}
+                                </label>
                                 <input
                                     type="text"
                                     value={idCard}
@@ -490,7 +518,10 @@ function Profile() {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm font-bold text-gray-400 uppercase tracking-wider block">Fecha de Nacimiento</label>
+                                <label className="text-sm font-bold text-gray-400 uppercase tracking-wider flex items-center justify-between">
+                                    <span>Fecha de Nacimiento</span>
+                                    {!dob && <span className="text-red-500 font-bold flex items-center gap-1 text-[10px]"><span className="material-symbols-outlined text-[14px]">error</span> FALTANTE</span>}
+                                </label>
                                 <input
                                     type="date"
                                     value={dob}
@@ -499,7 +530,10 @@ function Profile() {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm font-bold text-gray-400 uppercase tracking-wider block">Tipo de Sangre</label>
+                                <label className="text-sm font-bold text-gray-400 uppercase tracking-wider flex items-center justify-between">
+                                    <span>Tipo de Sangre</span>
+                                    {!bloodType && <span className="text-red-500 font-bold flex items-center gap-1 text-[10px]"><span className="material-symbols-outlined text-[14px]">error</span> FALTANTE</span>}
+                                </label>
                                 <select
                                     value={bloodType}
                                     onChange={(e) => setBloodType(e.target.value)}
